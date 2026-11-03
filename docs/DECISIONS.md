@@ -1,0 +1,19 @@
+# Architecture decisions
+
+## ADR-001 — native Z80 output (2026-11-03)
+Compile blocks into standalone Z80 ASM, not Spectrum-side interpreted bytecode. Motivation: predictable runtime costs and no visual-language interpreter in scarce RAM.
+
+## ADR-002 — versioned JSON boundary (2026-11-03)
+The editor serializes zxblocks/v1, separate from internal Blockly format. Motivation: GUI, CLI and project files evolve independently. Breaking changes require explicit migration.
+
+## ADR-003 — Python compiler, JavaScript GUI (2026-11-03)
+Use stdlib-first Python 3.11+ and a future browser Blockly UI, keeping command-line tools independent. Pin UI dependencies only when introduced.
+
+## ADR-004 — Spectrum 48K baseline (2026-11-03)
+Assume classic 48K, with target profiles planned for Delta-C variants. No 128K or Next-specific operations by default.
+
+## ADR-005 — readable code before micro-optimization (2026-11-03)
+Generate deterministic human-readable ASM, record contracts and test behavior before T-state optimization.
+
+## ADR-006 — PR-oriented work (2026-11-03)
+GitHub is the source of truth; Codex changes are reviewed as feature branches and PRs. Document decisions rather than relying on transient conversation history.
