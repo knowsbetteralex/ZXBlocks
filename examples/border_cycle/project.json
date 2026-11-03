@@ -1,0 +1,48 @@
+{
+  "format": "zxblocks/v1",
+  "name": "Border Cycle",
+  "variables": [
+    {
+      "name": "counter",
+      "initial": 0
+    }
+  ],
+  "events": {
+    "start": [
+      {
+        "op": "set",
+        "var": "counter",
+        "value": 0
+      }
+    ],
+    "frame": [
+      {
+        "op": "change",
+        "var": "counter",
+        "by": 1
+      },
+      {
+        "op": "if",
+        "condition": {
+          "var": "counter",
+          "op": "ge",
+          "value": 8
+        },
+        "then": [
+          {
+            "op": "set",
+            "var": "counter",
+            "value": 0
+          }
+        ]
+      },
+      {
+        "op": "call",
+        "name": "set_border",
+        "arg": {
+          "var": "counter"
+        }
+      }
+    ]
+  }
+}

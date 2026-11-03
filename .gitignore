@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Generated files
+build/
+dist/
+*.tap
+*.bin
+*.sld.txt
+*.lst
+*.sym
+
+# Editor
+node_modules/
+editor/dist/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
