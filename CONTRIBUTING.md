@@ -26,6 +26,6 @@ With sjasmplus on PATH:
 python -m zxblocks build examples/border_cycle/project.json -o build
 ~~~
 
-CODE-only TAP is not an autostart game: LOAD "" CODE, then RANDOMIZE USR 32768. If toolchain/emulator was unavailable, do not claim that verification succeeded.
+CODE-only TAP is not an autostart game: CLEAR 32767, then LOAD "" CODE, then RANDOMIZE USR 32768. If toolchain/emulator was unavailable, do not claim that verification succeeded.
 
 When importing procedures from SpaceCan, document provenance, license, register/memory contract and T-states.

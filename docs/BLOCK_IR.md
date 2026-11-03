@@ -39,7 +39,7 @@ UTF-8 JSON is the boundary between future Blockly editor and compiler. Do not de
 - Builtins ZXB_RT_*, variables ZXB_VAR_* and deterministic unique branch labels.
 - set_border input A is color, low 3 bits used; A and flags modified; writes port 254.
 
-Current TAP is CODE-only without autostart: LOAD "" CODE then RANDOMIZE USR 32768.
+Current TAP is CODE-only without autostart: CLEAR 32767, then LOAD "" CODE, then RANDOMIZE USR 32768.
 
 ## Evolution
 

@@ -26,7 +26,7 @@ python -m zxblocks build examples/border_cycle/project.json -o build
 
 Результаты: build/border_cycle.asm, build/border_cycle.bin, build/border_cycle.tap.
 
-**Внимание:** пока создаётся CODE-only TAP, без BASIC-загрузчика и автозапуска. На Spectrum 48K сначала выполните LOAD "" CODE, затем RANDOMIZE USR 32768. Полученная программа не возвращается в BASIC.
+**Внимание:** пока создаётся CODE-only TAP, без BASIC-загрузчика и автозапуска. На Spectrum 48K выполните CLEAR 32767, затем LOAD "" CODE, затем RANDOMIZE USR 32768. Полученная программа не возвращается в BASIC.
 
 ## Уже работает
 
