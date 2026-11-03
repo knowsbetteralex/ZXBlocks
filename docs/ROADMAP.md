@@ -8,10 +8,18 @@ The checkboxes separate completed work from plans.
 - [x] JSON to readable Z80 ASM with strict u8 checks.
 - [x] Start/frame, set/change/if and border runtime.
 - [x] CODE-only TAP writer and Python unit tests/CI definition.
-- [ ] Verify actual sjasmplus assembly and 48K emulator behavior.
-- [ ] Review and merge initial PR.
+- [x] Verify actual sjasmplus assembly and 48K emulator behavior.
+- [x] Review and merge initial PR (#1, bootstrap commit `71737c6`).
+- [x] VS Code build tasks, DeZog 48K snapshot/source debugging and EmuZWin launch.
 
 Acceptance: tests pass, deterministic ASM; after manually loading CODE, border cycles on a real/emulated 48K.
+
+Verified on 2026-11-04: Python 3.13.5, all 7 bootstrap unit tests passed;
+sjasmplus 1.21.0 assembled the example (52-byte BIN, 77-byte TAP). Repeated
+builds matched byte for byte. The user confirmed the program runs in an
+emulator; DeZog's ZX48K simulator was also checked for border changes,
+instruction stepping and a breakpoint in `ZXB_ON_FRAME`. SNA entry/stack and
+SLD source mappings were verified. No timing or contention measurements yet.
 
 ## M1 — visual editor
 
@@ -53,7 +61,7 @@ Acceptance: deterministic input-driven movement can be unit-tested.
 
 ## Suggested first Codex tasks
 
-1. Verify current bootstrap with actual sjasmplus and 48K emulator; add smoke-test instructions/results.
+1. Bootstrap verified; repeat the assembler/emulator smoke test when Z80 behavior changes.
 2. Create Blockly MVP with exact zxblocks/v1 import/export and tests.
 3. Add keyboard and frame timer support with IR specification and tests first.
 4. Implement runtime ABI documentation and initial sprite vertical slice.

@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "dezog",
+            "request": "launch",
+            "name": "ZXBlocks: border_cycle (DeZog 48K)",
+            "remoteType": "zsim",
+            "zsim": {
+                "preset": "spectrum",
+                "memoryModel": "ZX48K",
+                "ulaScreen": "spectrum",
+                "zxKeyboard": "spectrum",
+                "visualMemory": true
+            },
+            "sjasmplus": [
+                {
+                    "path": "build/border_cycle.sld"
+                }
+            ],
+            "load": "build/border_cycle.sna",
+            "startAutomatically": false,
+            "topOfStack": "0x7FFC",
+            "rootFolder": "${workspaceFolder}",
+            "tmpDir": "build/dezog",
+            "preLaunchTask": "ZXBlocks: build debug snapshot"
+        }
+    ]
+}

@@ -28,6 +28,42 @@ python -m zxblocks build examples/border_cycle/project.json -o build
 
 **Внимание:** пока создаётся CODE-only TAP, без BASIC-загрузчика и автозапуска. На Spectrum 48K выполните CLEAR 32767, затем LOAD "" CODE, затем RANDOMIZE USR 32768. Полученная программа не возвращается в BASIC.
 
+## Сборка и отладка в VS Code
+
+После создания `.venv` и установки проекта установите рекомендованные расширения
+**DeZog** (`maziac.dezog`), **Z80 Assembly** (`imanolea.z80-asm`) и
+**ASM Code Lens** (`maziac.asm-code-lens`);
+`sjasmplus` должен быть доступен в PATH терминала VS Code.
+Общие настройки находятся в `.vscode/` и используют Python из `.venv` без
+предварительной активации окружения.
+Файлы `.asm` и `.inc` связаны с языком Z80 Assembly, чтобы DeZog разрешал
+устанавливать точки останова даже при других общих настройках ассемблера.
+
+- **Ctrl+Shift+B** запускает `ZXBlocks: build`: JSON-пример `border_cycle`
+  компилируется в `build/border_cycle.asm`, `.bin` и `.tap`.
+- **F5**, конфигурация `ZXBlocks: border_cycle (DeZog 48K)`, сначала выполняет
+  сборку, затем создаёт `build/border_cycle.sna` и `.sld` и открывает встроенный
+  симулятор DeZog в режиме Spectrum 48K. Выполнение остановлено на входе;
+  повторное **F5** продолжает программу, **F10/F11** выполняют шаги.
+- Для точек останова откройте `build/border_cycle.asm`, например процедуру
+  `ZXB_ON_FRAME`. Сейчас отладка привязана к сгенерированному ASM, а не к JSON.
+- Если `emuz` доступен в PATH, задача **Tasks: Run Task → ZXBlocks: run EmuZWin**
+  пересобирает пример и открывает SNA в EmuZWin. Это отдельный запуск эмулятора;
+  сеанс DeZog использует собственный симулятор.
+
+Снимок SNA сразу запускает код с адреса 32768 и содержит подготовленные RAM,
+системные переменные и стек ниже кода, как после `CLEAR 32767`. Его сборка
+описана в `tools/debug_border_cycle.asm`; ROM в снимок не включается.
+Все результаты сборки и временные файлы DeZog остаются в `build/`.
+
+Эту же отладочную сборку можно выполнить из терминала в корне репозитория:
+
+~~~powershell
+.venv\Scripts\python.exe -m zxblocks build examples/border_cycle/project.json -o build
+sjasmplus --fullpath=rel --sld=build/border_cycle.sld tools/debug_border_cycle.asm
+emuz build\border_cycle.sna
+~~~
+
 ## Уже работает
 
 - События start и frame.

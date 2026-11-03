@@ -1,0 +1,58 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ZXBlocks: build",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "windows": {
+                "command": "${workspaceFolder}/.venv/Scripts/python.exe"
+            },
+            "args": [
+                "-m",
+                "zxblocks",
+                "build",
+                "examples/border_cycle/project.json",
+                "-o",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ZXBlocks: build debug snapshot",
+            "dependsOn": "ZXBlocks: build",
+            "type": "process",
+            "command": "sjasmplus",
+            "args": [
+                "--fullpath=rel",
+                "--sld=build/border_cycle.sld",
+                "tools/debug_border_cycle.asm"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "ZXBlocks: run EmuZWin",
+            "dependsOn": "ZXBlocks: build debug snapshot",
+            "type": "process",
+            "command": "emuz",
+            "args": [
+                "${workspaceFolder}\\build\\border_cycle.sna"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

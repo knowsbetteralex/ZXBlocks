@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "*.asm": "z80-asm",
+        "*.inc": "z80-asm",
+        "*.{asm,inc,s,----------------------------------------------------}": "asm-z80-sjasmplus",
+        "*.{list,lis,lst,LIST,LIS,LST}": "asm-z80-sjasmplus-list"
+    },
+    "asm-code-lens.assembler": "sjasmplus (z80)"
+}
