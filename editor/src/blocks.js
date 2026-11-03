@@ -1,5 +1,6 @@
 import * as BlocklyModule from 'blockly/core';
 import * as RuModule from 'blockly/msg/ru';
+import {KEY_NAMES} from './keys.js';
 
 // Blockly exposes CommonJS in Node and ESM in browsers.
 const unwrap = module => module.default ?? module;
@@ -27,6 +28,9 @@ Blockly.common.defineBlocksWithJsonArray([
     previousStatement: 'Action', nextStatement: 'Action', colour: 154},
   {type: 'zxb_byte', message0: '%1', args0: [byte('NUM')], output: 'Byte', colour: 212},
   {type: 'zxb_var', message0: '%1', args0: [variable], output: 'Byte', colour: 212},
+  {type: 'zxb_key', message0: 'клавиша %1 нажата', args0: [
+    {type: 'field_dropdown', name: 'KEY', options: KEY_NAMES.map(key => [key === 'SPACE' ? 'ПРОБЕЛ' : key, key])}],
+    output: 'Byte', colour: 154, tooltip: 'zxblocks/v2: 1 — нажата, 0 — отпущена. Состояние фиксируется перед каждым кадром.'},
 ]);
 
 export const toolbox = {kind: 'categoryToolbox', contents: [
@@ -36,7 +40,8 @@ export const toolbox = {kind: 'categoryToolbox', contents: [
     {kind: 'block', type: 'zxb_change'}, {kind: 'block', type: 'zxb_var'}, {kind: 'block', type: 'zxb_byte'}]},
   {kind: 'category', name: 'Условия', colour: '#945ac2', contents: [{kind: 'block', type: 'zxb_if'}]},
   {kind: 'category', name: 'Spectrum', colour: '#2b9873', contents: [
-    {kind: 'block', type: 'zxb_border', inputs: {VALUE: {shadow: {type: 'zxb_byte'}}}}]},
+    {kind: 'block', type: 'zxb_border', inputs: {VALUE: {shadow: {type: 'zxb_byte'}}}},
+    {kind: 'block', type: 'zxb_key', fields: {KEY: 'SPACE'}}]},
 ]};
 
 export {Blockly};

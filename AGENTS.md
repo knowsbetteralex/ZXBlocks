@@ -14,7 +14,7 @@ Before any architectural change read README.md, docs/ARCHITECTURE.md, docs/BLOCK
 
 ## Layers
 
-1. editor/ — planned Blockly GUI; it emits versioned JSON IR, never assembly directly.
+1. editor/ — Blockly GUI; it emits versioned JSON IR, never assembly directly.
 2. src/zxblocks/ — validation, code generation, packaging and CLI.
 3. runtime/ — eventual Z80 library, linked only when needed.
 4. examples/ and tests/ — executable test cases.
@@ -23,7 +23,9 @@ The IR is the boundary between editor and compiler. Do not commit generated ASM/
 
 ## Compiler invariants
 
-- The input format is zxblocks/v1. Reject unsupported nodes.
+- Supported input formats are zxblocks/v1 and the documented zxblocks/v2
+  keyboard extension (docs/BLOCK_IR_V2.md). Preserve v1 behavior, require an
+  explicit upgrade for v2-only expressions, and reject unsupported nodes.
 - Never eval input or interpolate arbitrary user text into ASM.
 - Deterministic output, stable labels, human-readable assembly and strict identifier checks.
 - MVP only supports unsigned bytes; change arithmetic wraps modulo 256.

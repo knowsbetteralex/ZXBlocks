@@ -24,6 +24,26 @@
             "rootFolder": "${workspaceFolder}",
             "tmpDir": "build/dezog",
             "preLaunchTask": "ZXBlocks: build debug snapshot"
+        },
+        {
+            "type": "dezog",
+            "request": "launch",
+            "name": "ZXBlocks: keyboard_border (DeZog 48K)",
+            "remoteType": "zsim",
+            "zsim": {
+                "preset": "spectrum",
+                "memoryModel": "ZX48K",
+                "ulaScreen": "spectrum",
+                "zxKeyboard": "spectrum",
+                "visualMemory": true
+            },
+            "sjasmplus": [{"path": "build/keyboard_border.sld"}],
+            "load": "build/keyboard_border.sna",
+            "startAutomatically": false,
+            "topOfStack": "0x7FFC",
+            "rootFolder": "${workspaceFolder}",
+            "tmpDir": "build/dezog/keyboard",
+            "preLaunchTask": "ZXBlocks: keyboard debug snapshot"
         }
     ]
 }

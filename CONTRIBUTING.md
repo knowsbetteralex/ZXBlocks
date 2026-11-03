@@ -41,6 +41,19 @@ and check import/edit/export, workspace persistence, compile and block-linked
 diagnostics in a browser. Report interactive browser QA separately from
 headless Blockly tests. Keep the roadmap checkboxes aligned with actual evidence.
 
+For Z80 keyboard changes, install the optional test tool and provide sjasmplus
+on PATH, then run the assembled-code tests as well:
+
+~~~sh
+python -m pip install -r requirements-z80-tests.txt
+python -m unittest discover -s tests -p test_z80_keyboard.py -v
+~~~
+
+They are skipped when tools are absent; report those skips explicitly. The
+dedicated CI job installs pinned SkoolKit 10.1 and builds sjasmplus v1.21.0.
+The owned interrupt stub and keyboard port fixture exercise native code, not
+a full Spectrum ROM/ULA. Keep full 48K emulator checks separate.
+
 CODE-only TAP is not an autostart game: CLEAR 32767, then LOAD "" CODE, then RANDOMIZE USR 32768. If toolchain/emulator was unavailable, do not claim that verification succeeded.
 
 When importing procedures from SpaceCan, document provenance, license, register/memory contract and T-states.

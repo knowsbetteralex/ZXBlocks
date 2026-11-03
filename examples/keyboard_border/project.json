@@ -1,0 +1,16 @@
+{
+  "format": "zxblocks/v2",
+  "name": "Keyboard Border",
+  "variables": [{"name": "space_pressed", "initial": 0}],
+  "events": {
+    "start": [{"op": "call", "name": "set_border", "arg": 1}],
+    "frame": [
+      {"op": "set", "var": "space_pressed", "value": {"key": "SPACE"}},
+      {
+        "op": "if", "condition": {"var": "space_pressed", "op": "eq", "value": 1},
+        "then": [{"op": "call", "name": "set_border", "arg": 6}],
+        "else": [{"op": "call", "name": "set_border", "arg": 1}]
+      }
+    ]
+  }
+}

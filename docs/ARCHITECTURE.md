@@ -8,7 +8,7 @@ A Scratch-like editor on PC targeting classic ZX Spectrum 48K. The host is uncon
 Blockly workspace (M1)
          |
          v
-zxblocks/v1 JSON project
+zxblocks/v1 or v2 JSON project
          |
          v
 validate -> typed IR -> Z80 code generator
@@ -52,6 +52,11 @@ project. Normal JSON exports contain only `zxblocks/v1` project data.
 
 Current generated game calls the start event, then repeats HALT -> frame event. It expects a valid BASIC stack and 48K IM1 ROM interrupts.
 
+The v2 keyboard slice polls referenced hardware rows before start and between
+HALT and the frame event. Expressions read those cached bytes; v1 output stays
+unchanged. An independent Python logic simulator accepts per-frame key sets;
+it is not a Spectrum emulator. See `BLOCK_IR_V2.md` and `KEYBOARD_RUNTIME.md`.
+
 Future game loop: HALT -> RENDER_FRAME -> KEY_POLL -> UPDATE_GAME. Event blocks update model state, not screen RAM directly. A Scratch-style wait must compile to a non-blocking timer/state machine. Multiple scripts become deterministic cooperative state machines, not OS threads.
 
 ## Performance and memory
@@ -64,4 +69,4 @@ IR format is versioned; design a migration strategy before adding breaking chang
 
 ## Still planned
 
-Animation tool, object system, keyboard/timer IR, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer and a complete emulator.
+Animation tool, object system, timer/procedure IR, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer and a complete emulator.

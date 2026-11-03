@@ -11,6 +11,7 @@ export function importProject(workspace, input) {
   const variables = (project.variables ?? []).map((v, index) => ({name: v.name, type: 'u8', id: `zxb_var_${index}`}));
   const expression = value => typeof value === 'number'
     ? {type: 'zxb_byte', fields: {NUM: value}}
+    : Object.hasOwn(value, 'key') ? {type: 'zxb_key', fields: {KEY: value.key}}
     : {type: 'zxb_var', fields: {VAR: variableState(value.var, variables)}};
   const chain = actions => {
     let first = null;
@@ -38,7 +39,7 @@ export function importProject(workspace, input) {
     return block;
   });
   Blockly.serialization.workspaces.load({variables, blocks: {languageVersion: 0, blocks}}, workspace);
-  return {name: project.name ?? 'Новый проект', initials: Object.fromEntries(variables.map((v, i) => [v.id, project.variables[i].initial ?? 0]))};
+  return {format: project.format, name: project.name ?? 'Новый проект', initials: Object.fromEntries(variables.map((v, i) => [v.id, project.variables[i].initial ?? 0]))};
 }
 
 export function exportProject(workspace, metadata) {
@@ -55,6 +56,7 @@ export function exportProject(workspace, metadata) {
     visited.add(block.id); sourceMap[path] = block.id;
     if (block.type === 'zxb_byte') return Number(block.getFieldValue('NUM'));
     if (block.type === 'zxb_var') return {var: variableName(block)};
+    if (block.type === 'zxb_key') return {key: block.getFieldValue('KEY')};
     fail('Ожидается байтовое значение', block);
   };
   let count = 0;
@@ -93,7 +95,7 @@ export function exportProject(workspace, metadata) {
     if (!visited.has(block.id)) fail('Подключите блок к событию', block);
   }
   const variables = workspace.getVariableMap().getAllVariables().map(variable => ({name: variable.getName(), initial: metadata.initials[variable.getId()] ?? 0}));
-  const project = {format: 'zxblocks/v1', name: metadata.name, variables, events};
+  const project = {format: metadata.format ?? 'zxblocks/v1', name: metadata.name, variables, events};
   try { validateProject(project); }
   catch (error) { error.blockId ??= blockForPath(sourceMap, error.path); throw error; }
   return {project, sourceMap};
@@ -108,7 +110,7 @@ export function loadEditorState(workspace, state) {
   if (state?.format !== 'zxblocks/editor/v1') throw new EditorError('Неизвестный формат рабочего места');
   validateProject(state.project);
   const scratch = new Blockly.Workspace();
-  const metadata = {name: state.project.name, initials: state.initials ?? {}};
+  const metadata = {format: state.project.format, name: state.project.name, initials: state.initials ?? {}};
   try {
     Blockly.serialization.workspaces.load(state.workspace, scratch);
     if (JSON.stringify(exportProject(scratch, metadata).project) !== JSON.stringify(state.project)) throw new EditorError('Блоки рабочего места не совпадают с проектом');

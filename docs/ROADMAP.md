@@ -42,15 +42,35 @@ and sjasmplus: ASM, BIN and TAP matched the verified M0 artifacts byte for byte.
 Interactive browser acceptance is still pending: on 2026-11-04 Computer Use
 stopped because it could not reliably determine Chrome's current URL. See
 `editor/README.md` for startup, verification and known limitations. Complete
-that smoke test before proceeding to M2.
+that smoke test before marking M1 accepted. CLI/compiler M2 work can be tested
+independently while browser automation is unavailable; it does not close M1.
 
 ## M2 — timing and events
 
-- [ ] Key input expressions, non-blocking timers, cooperative scheduling.
+- [x] Versioned key input expressions, per-frame row samples and explicit v1→v2 migration.
+- [x] Keyboard-border example, Blockly round trips and assembled Z80 port tests.
+- [ ] Non-blocking timers and cooperative scheduling.
 - [ ] Named procedures and object state.
-- [ ] Python reference simulation to test logic independently from video.
+- [x] Python reference simulation for v1/v2 actions and keyboard input, independent of video.
+- [ ] Interactive 48K emulator keyboard test and browser keyboard-block smoke test.
 
 Acceptance: deterministic input-driven movement can be unit-tested.
+
+Keyboard slice implemented in `feat/keyboard-v2`; see `docs/BLOCK_IR_V2.md`
+and `docs/KEYBOARD_RUNTIME.md`. Timer/procedure/object semantics are not yet
+implemented. Interactive Chrome automation was blocked again on 2026-11-04
+because Computer Use could not reliably determine its current URL. No new
+browser or full 48K keyboard-emulator run is claimed; the assembled-code
+tests use an owned IRQ stub and port fixture, not the Spectrum ROM or ULA.
+
+Verification on 2026-11-04: 35 Python tests (including 4 assembled-code tests
+with sjasmplus 1.21.0 / SkoolKit 10.1) and 16 real-Blockly tests passed; no
+local test skips. Both examples assembled with no errors or warnings. The
+keyboard BIN is 72 bytes; SNA entry/stack/code and SLD symbols were checked.
+The existing v1 ASM/BIN/TAP still match the verified M0 artifacts byte for byte.
+The dedicated assembled-keyboard CI job is added; a remote CI run is not claimed.
+Also fixed Windows HTTP port sharing: a second editor cannot bind the same
+active port and accidentally serve an older compiler; covered by a regression test.
 
 ## M3 — graphics/animations
 

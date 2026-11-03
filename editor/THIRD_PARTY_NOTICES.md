@@ -17,3 +17,9 @@ excluded from the browser bundle. No CDN, fonts, or remote runtime assets are
 required after the editor is built.
 
 ZXBlocks' own editor code remains under the repository's MIT license.
+
+The repository's optional Z80 tests use the external SkoolKit 10.1 tool
+(GPL-3.0-or-later, https://skoolkit.ca/), installed separately via
+`requirements-z80-tests.txt`. It is not bundled in the editor, linked into
+Spectrum programs, or required by the compiler. No SkoolKit code or Spectrum
+ROM assets are copied into this repository.

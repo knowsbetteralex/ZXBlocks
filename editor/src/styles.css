@@ -18,7 +18,8 @@ body {
   margin: 0;
 }
 button,
-input {
+input,
+select {
   font: inherit;
 }
 button {
@@ -211,7 +212,8 @@ aside {
   color: #617086;
   margin: 14px 0 5px;
 }
-.properties input {
+.properties input,
+.properties select {
   border: 1px solid #d7dfe8;
   background: #fafbfd;
   border-radius: 5px;

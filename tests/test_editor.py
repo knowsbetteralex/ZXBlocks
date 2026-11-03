@@ -77,6 +77,13 @@ class EditorServerTests(unittest.TestCase):
         self.assertEqual(body["error"]["path"], "events.frame[0]")
         self.assertIn("Unknown variable", body["error"]["message"])
 
+    def test_v2_keyboard_uses_the_same_compiler_endpoint(self):
+        project = json.loads((EXAMPLE.parent.parent / "keyboard_border/project.json").read_text(encoding="utf-8"))
+        status, body = self.request(json.dumps(project).encode())
+        self.assertEqual(status, 200)
+        self.assertEqual(body["asm"], compile_project(project))
+        self.assertIn("IN A,(C)", body["asm"])
+
     def test_rejects_bad_json_and_excessive_body(self):
         self.assertEqual(self.request(b"{")[0], 400)
         self.assertEqual(self.request(b" " * (MAX_REQUEST_BYTES + 1))[0], 413)
@@ -88,6 +95,11 @@ class EditorServerTests(unittest.TestCase):
     def test_missing_bundle_has_actionable_message(self):
         with self.assertRaisesRegex(ValueError, "npm ci"):
             create_editor_server(0, Path(self.directory.name) / "missing")
+
+    def test_second_editor_cannot_share_the_active_port(self):
+        with self.assertRaises(OSError):
+            duplicate = create_editor_server(self.server.server_port, Path(self.directory.name))
+            duplicate.server_close()
 
 
 if __name__ == "__main__":

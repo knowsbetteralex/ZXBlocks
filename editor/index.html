@@ -17,6 +17,7 @@
       <div><span class="eyebrow">МАСТЕРСКАЯ / 01</span><h1>Собери свою программу</h1></div>
       <div class="actions">
         <button id="example">Пример бордюра</button>
+        <button id="keyboard-example">Бордюр с клавиатурой</button>
         <button id="open">Открыть JSON</button>
         <button id="export">Сохранить JSON ↗</button>
         <button id="compile" class="primary">▶ Проверить и собрать ASM</button>
@@ -32,6 +33,8 @@
         <section class="properties">
           <span class="eyebrow">ПРОЕКТ</span>
           <label for="project-name">Название</label><input id="project-name" maxlength="120" autocomplete="off">
+          <label for="project-format">Формат проекта</label>
+          <select id="project-format"><option value="zxblocks/v1">v1 · базовые блоки</option><option value="zxblocks/v2">v2 · клавиатура</option></select>
           <div class="section-title"><h2>Переменные <small>u8 · 0–255</small></h2><button id="add-variable" aria-label="Добавить переменную">＋</button></div>
           <div id="variables"></div>
           <div class="layout-actions"><button id="save-layout">Сохранить рабочее место</button><button id="open-layout">Открыть</button></div>

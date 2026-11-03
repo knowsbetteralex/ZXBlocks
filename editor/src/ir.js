@@ -1,3 +1,5 @@
+import {KEY_NAMES} from './keys.js';
+
 export class EditorError extends Error {
   constructor(message, path = '', blockId = null) {
     super(message);
@@ -17,7 +19,7 @@ export function validateProject(project) {
     if (!Number.isInteger(value) || value < min || value > max) fail(`Ожидается целое число ${min}…${max}`, path);
   };
   object(project, ['format', 'name', 'variables', 'events'], '');
-  if (project.format !== 'zxblocks/v1') fail('Поддерживается только zxblocks/v1', 'format');
+  if (!['zxblocks/v1', 'zxblocks/v2'].includes(project.format)) fail('Поддерживается zxblocks/v1 или zxblocks/v2', 'format');
   if (project.name !== undefined && typeof project.name !== 'string') fail('Имя проекта должно быть строкой', 'name');
   const variables = project.variables === undefined ? [] : project.variables;
   if (!Array.isArray(variables)) fail('Переменные должны быть массивом', 'variables');
@@ -35,7 +37,11 @@ export function validateProject(project) {
   };
   const expression = (value, path) => {
     if (typeof value === 'number') integer(value, 0, 255, path);
-    else { object(value, ['var'], path); ref(value.var, path); }
+    else if (value && typeof value === 'object' && Object.hasOwn(value, 'key')) {
+      object(value, ['key'], path);
+      if (project.format !== 'zxblocks/v2') fail('Клавиатура требует zxblocks/v2. Выберите v2 в формате проекта.', path);
+      if (!KEY_NAMES.includes(value.key)) fail('Неизвестная физическая клавиша', path);
+    } else { object(value, ['var'], path); ref(value.var, path); }
   };
   const events = project.events === undefined ? {} : project.events;
   object(events, ['start', 'frame'], 'events');

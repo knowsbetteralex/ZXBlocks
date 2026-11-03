@@ -60,6 +60,34 @@
             "problemMatcher": []
         },
         {
+            "label": "ZXBlocks: build keyboard example",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "windows": {"command": "${workspaceFolder}/.venv/Scripts/python.exe"},
+            "args": ["-m", "zxblocks", "build", "examples/keyboard_border/project.json", "-o", "build"],
+            "options": {"cwd": "${workspaceFolder}"},
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "ZXBlocks: keyboard debug snapshot",
+            "dependsOn": "ZXBlocks: build keyboard example",
+            "type": "process",
+            "command": "sjasmplus",
+            "args": ["--fullpath=rel", "--sld=build/keyboard_border.sld", "tools/debug_keyboard_border.asm"],
+            "options": {"cwd": "${workspaceFolder}"},
+            "problemMatcher": []
+        },
+        {
+            "label": "ZXBlocks: run keyboard in EmuZWin",
+            "dependsOn": "ZXBlocks: keyboard debug snapshot",
+            "type": "process",
+            "command": "emuz",
+            "args": ["${workspaceFolder}\\build\\keyboard_border.sna"],
+            "options": {"cwd": "${workspaceFolder}"},
+            "problemMatcher": []
+        },
+        {
             "label": "ZXBlocks: run EmuZWin",
             "dependsOn": "ZXBlocks: build debug snapshot",
             "type": "process",

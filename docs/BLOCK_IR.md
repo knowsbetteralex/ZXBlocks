@@ -1,5 +1,8 @@
 # Block IR — zxblocks/v1
 
+This remains the supported baseline. Keyboard expressions are a separate,
+explicit [zxblocks/v2 extension](BLOCK_IR_V2.md); they are rejected in v1.
+
 UTF-8 JSON is the boundary between future Blockly editor and compiler. Do not depend on Blockly's internal XML format.
 
 ~~~json

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import socket
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -11,6 +12,18 @@ from .compiler import CompileError, compile_project
 
 MAX_REQUEST_BYTES = 1024 * 1024
 EDITOR_DIST = Path(__file__).resolve().parents[2] / "editor" / "dist"
+
+
+class EditorHTTPServer(ThreadingHTTPServer):
+    allow_reuse_port = False
+
+    def server_bind(self) -> None:
+        # Windows SO_REUSEADDR permits two active listeners on the same port.
+        # An exclusive listener prevents requests reaching an old compiler.
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.allow_reuse_address = False
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
 
 
 class EditorHandler(SimpleHTTPRequestHandler):
@@ -51,7 +64,7 @@ class EditorHandler(SimpleHTTPRequestHandler):
 def create_editor_server(port: int = 8765, directory: Path = EDITOR_DIST) -> ThreadingHTTPServer:
     if not (directory / "index.html").is_file():
         raise ValueError("Editor is not built. Run 'npm ci' then 'npm run build' in editor/.")
-    return ThreadingHTTPServer(("127.0.0.1", port), partial(EditorHandler, directory=str(directory)))
+    return EditorHTTPServer(("127.0.0.1", port), partial(EditorHandler, directory=str(directory)))
 
 
 def serve_editor(port: int = 8765, open_browser: bool = False) -> None:

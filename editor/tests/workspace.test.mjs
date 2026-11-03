@@ -52,7 +52,7 @@ test('editor positions survive save/load without entering semantic IR', () => wi
 
 test('unknown or malformed IR is rejected without destroying the open workspace', () => withWorkspace(workspace => {
   const metadata = importProject(workspace, example);
-  for (const invalid of [null, {format: 'zxblocks/v2'}, {...example, assets: []},
+  for (const invalid of [null, {format: 'zxblocks/v3'}, {...example, assets: []},
     {...example, variables: null}, {...example, events: null},
     {...example, variables: [{name: 'x', initial: true}]}, {...example, variables: [{name: 'x', initial: null}]}]) {
     assert.throws(() => importProject(workspace, invalid));
@@ -122,4 +122,39 @@ test('editor export and hand-written IR compile to identical Z80 ASM', () => wit
   const child = spawnSync(python, ['-c', script], {input: JSON.stringify([example, result]), encoding: 'utf8', cwd: fileURLToPath(new URL('..', import.meta.url))});
   assert.equal(child.status, 0, child.stderr || child.error?.message);
   assert.match(child.stdout, /ASM identical/);
+}));
+
+test('v2 keyboard project and editor layout round-trip without downgrading', () => withWorkspace(workspace => {
+  const project = JSON.parse(readFileSync(new URL('../../examples/keyboard_border/project.json', import.meta.url)));
+  const metadata = importProject(workspace, project);
+  assert.deepEqual(exportProject(workspace, metadata).project, project);
+  assert.ok(workspace.getAllBlocks(false).some(block => block.type === 'zxb_key'));
+  const restored = loadEditorState(workspace, saveEditorState(workspace, metadata));
+  assert.equal(restored.format, 'zxblocks/v2');
+  assert.deepEqual(exportProject(workspace, restored).project, project);
+}));
+
+test('key blocks in v1 identify the block and require explicit format change', () => withWorkspace(workspace => {
+  const project = JSON.parse(readFileSync(new URL('../../examples/keyboard_border/project.json', import.meta.url)));
+  const metadata = importProject(workspace, project);
+  const key = workspace.getAllBlocks(false).find(block => block.type === 'zxb_key');
+  metadata.format = 'zxblocks/v1';
+  assert.throws(() => exportProject(workspace, metadata), error => error.blockId === key.id && /v2/.test(error.message));
+  metadata.format = 'zxblocks/v2';
+  assert.deepEqual(exportProject(workspace, metadata).project, project);
+}));
+
+test('physical key vocabulary matches the Python compiler and every key round-trips', () => withWorkspace(workspace => {
+  const project = JSON.parse(readFileSync(new URL('../../examples/keyboard_border/project.json', import.meta.url)));
+  const metadata = importProject(workspace, project);
+  const block = workspace.getAllBlocks(false).find(block => block.type === 'zxb_key');
+  const keys = block.getField('KEY').getOptions(false).map(option => option[1]);
+  for (const key of keys) {
+    block.setFieldValue(key, 'KEY');
+    assert.equal(exportProject(workspace, metadata).project.events.frame[0].value.key, key);
+  }
+  const python = process.env.ZXBLOCKS_PYTHON || (process.platform === 'win32' ? '../.venv/Scripts/python.exe' : '../.venv/bin/python');
+  const child = spawnSync(python, ['-c', 'import json; from zxblocks.keyboard import KEY_MATRIX; print(json.dumps(list(KEY_MATRIX)))'], {encoding: 'utf8', cwd: fileURLToPath(new URL('..', import.meta.url))});
+  assert.equal(child.status, 0, child.stderr);
+  assert.deepEqual(keys, JSON.parse(child.stdout));
 }));

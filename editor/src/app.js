@@ -100,12 +100,18 @@ function refresh() {
 function loadProject(project) {
   metadata = importProject(workspace, project);
   $('project-name').value = metadata.name;
+  $('project-format').value = metadata.format;
   refresh();
 }
 
 $('project-name').addEventListener('input', () => { metadata.name = $('project-name').value; refresh(); });
+$('project-format').addEventListener('change', () => { metadata.format = $('project-format').value; refresh(); });
 $('example').addEventListener('click', async () => {
   try { loadProject(await (await fetch('border_cycle.json')).json()); }
+  catch (error) { showError(error); }
+});
+$('keyboard-example').addEventListener('click', async () => {
+  try { loadProject(await (await fetch('keyboard_border.json')).json()); }
   catch (error) { showError(error); }
 });
 $('open').addEventListener('click', () => $('json-file').click());
@@ -117,7 +123,7 @@ for (const [input, isLayout] of [[$('json-file'), false], [$('layout-file'), tru
     try {
       if (file.size > 1024 * 1024) throw new Error('Файл должен быть не больше 1 МиБ');
       const data = JSON.parse(await file.text());
-      if (isLayout) { metadata = loadEditorState(workspace, data); $('project-name').value = metadata.name; refresh(); }
+      if (isLayout) { metadata = loadEditorState(workspace, data); $('project-name').value = metadata.name; $('project-format').value = metadata.format; refresh(); }
       else loadProject(data);
     } catch (error) { showError(error); }
     input.value = '';
@@ -174,7 +180,7 @@ try {
   let saved = null;
   try { saved = localStorage.getItem(storageKey); } catch { /* Editing also works without storage. */ }
   if (saved) {
-    try { metadata = loadEditorState(workspace, JSON.parse(saved)); $('project-name').value = metadata.name; refresh(); }
+    try { metadata = loadEditorState(workspace, JSON.parse(saved)); $('project-name').value = metadata.name; $('project-format').value = metadata.format; refresh(); }
     catch {
       // Keep the failed snapshot before a fresh example starts autosaving.
       try { localStorage.setItem(`${storageKey}.recovery`, saved); } catch { /* Storage may be unavailable. */ }

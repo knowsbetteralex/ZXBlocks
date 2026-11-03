@@ -1,8 +1,8 @@
 # Blockly editor — M1
 
-The editor supports the existing `zxblocks/v1` semantics. It generates JSON,
-never assembly; the local Python compiler generates ASM. No IR version or
-runtime ABI change is required.
+The editor supports `zxblocks/v1` and the explicit `zxblocks/v2` keyboard
+extension. It generates JSON, never assembly; the local Python compiler
+generates ASM. Existing v1 runtime output is unchanged.
 
 ## Run from a repository checkout
 
@@ -20,6 +20,10 @@ or CDN is required. sjasmplus is needed for CLI BIN/TAP builds, not for editing.
 - Import/export uses the normal project JSON, preserving action and declaration order.
 - Supported blocks: start/frame, set/change, if/else with eq/ne/lt/ge, set_border,
   byte literals and variable references. All variables are unsigned bytes.
+- In v2, the key-pressed block is a byte expression (1/0). Use the project format
+  selector to explicitly choose v2, or open the keyboard-border example.
+  v1 rejects key blocks without silently upgrading. The 40 physical key names
+  match the Python target; they are not composed BASIC symbols.
 - Add variables and edit their initial values in the project panel. Renaming
   updates references. Remove a variable after removing/replacing its uses.
 - The compiler button returns Python-generated ASM. Action diagnostics resolve
@@ -52,8 +56,8 @@ Blockly 13.4.0 and esbuild 0.28.2 are pinned with a lockfile. See
 
 ## Current limits and verification
 
-There is no in-browser Spectrum emulator, TAP builder, sprite editor, keyboard
-IR or timer support. Download JSON and use the existing CLI/DeZog/EmuZWin tasks
+There is no in-browser Spectrum emulator, TAP builder, sprite editor, timer or
+user-procedure support. Download JSON and use the existing CLI/DeZog/EmuZWin tasks
 for a Spectrum run. The server serves a built repository checkout; standalone
 Python wheels do not include editor assets. Changes to frontend sources require
 `npm run build` and a page reload.
@@ -68,3 +72,8 @@ tests passed, including ASM equality with the hand-written border example.
 The browser bundle was built. **Interactive browser/visual QA remains pending:**
 Computer Use stopped because it could not establish the current Chrome URL.
 No interactive browser test is claimed.
+
+The keyboard slice adds real-Blockly tests for v2 import/export, editor-state
+restore, explicit format selection and all 40 key names. Browser/48K emulator
+QA for the new keyboard example is also still pending. See
+[the v2 specification](../docs/BLOCK_IR_V2.md) for migration and sampling rules.

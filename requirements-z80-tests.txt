@@ -1,0 +1,2 @@
+# Optional test tool only; never a ZXBlocks runtime dependency.
+skoolkit==10.1
