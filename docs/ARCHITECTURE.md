@@ -2,10 +2,10 @@
 
 ## Concept
 
-A Scratch-like editor on PC targeting classic ZX Spectrum 48K. The host is unconstrained; the 48K machine receives only native Z80 code. First milestone takes hand-authored JSON and emits ASM/TAP; future UI will generate exactly the same IR.
+A Scratch-like editor on PC targeting classic ZX Spectrum 48K. The host is unconstrained; the 48K machine receives only native Z80 code. The M1 Blockly editor and hand-authored JSON use exactly the same IR and Python compiler.
 
 ~~~text
-Blockly workspace (later)
+Blockly workspace (M1)
          |
          v
 zxblocks/v1 JSON project
@@ -27,11 +27,26 @@ validate -> typed IR -> Z80 code generator
 
 ## Components
 
-- Editor: visual blocks, sprites/animations and workspace state; serializes versioned project IR only.
+- Editor: current IR blocks, variable editing and independent workspace state; serializes versioned project IR only. Sprites/animations are planned.
 - Compiler: semantic checks, symbol table, types, deterministic Z80, diagnostics, links runtime functions.
 - Runtime: standalone Z80 procedures for input, graphics, event scheduling, objects, animation and collisions.
 - Packager: currently CODE TAP; later BASIC autostart and other target formats.
-- Tests: unit tests for compiler/IR; assembler/emulator integration after bootstrap.
+- Tests: Python compiler/HTTP tests, headless Blockly round trips and cross-language ASM equality; assembler and 48K emulator smoke tests.
+
+## Local editor host
+
+`python -m zxblocks editor` serves the bundled editor on loopback only, using
+Python's standard library. `POST /api/compile` accepts the normal project IR
+and returns ASM or a diagnostic with an action path such as
+`events.frame[1].then[0]`. The browser maps those paths to Blockly block IDs;
+IDs and positions are never inserted into semantic IR. Build the frontend
+with the pinned npm dependencies; no Node service or external CDN is needed
+while editing. The Python compiler remains independently usable.
+
+Workspace files use a separate `zxblocks/editor/v1` envelope with `project`,
+Blockly `workspace` state and initial values keyed by editor variable IDs.
+Workspace restore validates the semantic snapshot before replacing the open
+project. Normal JSON exports contain only `zxblocks/v1` project data.
 
 ## Execution
 
@@ -47,6 +62,6 @@ The bitmap/attributes occupy the conventional 48K display memory. Default progra
 
 IR format is versioned; design a migration strategy before adding breaking changes. Runtime contracts must be hardware-aware. Existing SpaceCan procedures may be selectively adapted only after interface/licensing review. Keep Delta-C-specific assumptions in separate target profiles.
 
-## Not in bootstrap
+## Still planned
 
-Visual editor, animation tool, object system, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer and a complete emulator.
+Animation tool, object system, keyboard/timer IR, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer and a complete emulator.

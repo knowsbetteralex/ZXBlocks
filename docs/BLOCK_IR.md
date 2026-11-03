@@ -43,4 +43,14 @@ Current TAP is CODE-only without autostart: CLEAR 32767, then LOAD "" CODE, then
 
 ## Evolution
 
+The M1 editor continues to export this same format. Blockly IDs, positions and
+collapsed state are stored separately in `zxblocks/editor/v1` workspace files,
+not in project IR. Missing optional arrays/defaults may be normalized on export;
+reference spelling follows the declared variable. Unknown extension fields
+are rejected by editor import to prevent silent data loss.
+
+Python `CompileError.path` and the local editor HTTP diagnostic use paths such
+as `events.frame[1].then[0]`. These are host-side diagnostic metadata, not an IR
+schema change or runtime ABI change.
+
 Versioned evolution can add word/signed types, non-blocking timers, procedures, object properties, sprite asset references, keyboard conditions, rich expressions and source maps. Create migrations and new tests; do not break existing projects silently.

@@ -42,6 +42,24 @@
             "problemMatcher": []
         },
         {
+            "label": "ZXBlocks: build editor",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "build"],
+            "options": {"cwd": "${workspaceFolder}/editor"},
+            "problemMatcher": []
+        },
+        {
+            "label": "ZXBlocks: editor",
+            "dependsOn": "ZXBlocks: build editor",
+            "type": "process",
+            "command": "${workspaceFolder}/.venv/bin/python",
+            "windows": {"command": "${workspaceFolder}/.venv/Scripts/python.exe"},
+            "args": ["-m", "zxblocks", "editor", "--open"],
+            "options": {"cwd": "${workspaceFolder}"},
+            "problemMatcher": []
+        },
+        {
             "label": "ZXBlocks: run EmuZWin",
             "dependsOn": "ZXBlocks: build debug snapshot",
             "type": "process",

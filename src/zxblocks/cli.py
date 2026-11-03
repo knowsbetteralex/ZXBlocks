@@ -22,9 +22,16 @@ def main(argv: list[str] | None = None) -> int:
     build_cmd.add_argument("project", type=Path)
     build_cmd.add_argument("-o", "--output-dir", type=Path, default=Path("build"))
     build_cmd.add_argument("--assembler", default="sjasmplus")
+    editor_cmd = commands.add_parser("editor", help="Serve the local Blockly editor")
+    editor_cmd.add_argument("--port", type=int, default=8765)
+    editor_cmd.add_argument("--open", action="store_true", help="Open the editor in a browser")
     args = parser.parse_args(argv)
 
     try:
+        if args.command == "editor":
+            from .editor import serve_editor
+            serve_editor(args.port, args.open)
+            return 0
         with args.project.open("r", encoding="utf-8") as source:
             project = json.load(source)
         asm = compile_project(project)
@@ -40,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
             tap_path = args.output_dir / f"{stem}.tap"
             asm_path.write_text(asm, encoding="utf-8")
             subprocess.run(
-                [args.assembler, f"--raw={bin_path.resolve()}", str(asm_path)],
+                [args.assembler, f"--raw={bin_path.resolve().as_posix()}", asm_path.as_posix()],
                 check=True,
             )
             tap_path.write_bytes(make_code_tap(bin_path.read_bytes(), stem.upper()))

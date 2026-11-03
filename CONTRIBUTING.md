@@ -26,6 +26,21 @@ With sjasmplus on PATH:
 python -m zxblocks build examples/border_cycle/project.json -o build
 ~~~
 
+For editor changes (Node.js 22+), also run in `editor/`:
+
+~~~sh
+npm ci
+npm test
+npm run build
+~~~
+
+The cross-language editor test uses the repository `.venv` by default. Set
+`ZXBLOCKS_PYTHON` to a Python executable with ZXBlocks installed when using a
+different environment (CI sets it to `python`). Start `python -m zxblocks editor`
+and check import/edit/export, workspace persistence, compile and block-linked
+diagnostics in a browser. Report interactive browser QA separately from
+headless Blockly tests. Keep the roadmap checkboxes aligned with actual evidence.
+
 CODE-only TAP is not an autostart game: CLEAR 32767, then LOAD "" CODE, then RANDOMIZE USR 32768. If toolchain/emulator was unavailable, do not claim that verification succeeded.
 
 When importing procedures from SpaceCan, document provenance, license, register/memory contract and T-states.

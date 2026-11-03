@@ -18,3 +18,19 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Compile example to ASM
         run: python -m zxblocks compile examples/border_cycle/project.json -o build/border_cycle.asm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: editor/package-lock.json
+      - name: Install editor dependencies
+        run: npm ci
+        working-directory: editor
+      - name: Test Blockly round-trip and compiler compatibility
+        run: npm test
+        working-directory: editor
+        env:
+          ZXBLOCKS_PYTHON: python
+      - name: Bundle editor
+        run: npm run build
+        working-directory: editor

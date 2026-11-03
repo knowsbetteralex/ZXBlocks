@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZXBlocks — редактор</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/" aria-label="ZXBlocks"><span class="brand-mark">Z<span>X</span></span>BLOCKS</a>
+    <span class="divider"></span><span class="tagline">Твоя логика. Настоящий Spectrum.</span>
+    <span class="target"><i></i> ZX SPECTRUM 48K</span>
+  </header>
+  <main>
+    <section class="project-bar">
+      <div><span class="eyebrow">МАСТЕРСКАЯ / 01</span><h1>Собери свою программу</h1></div>
+      <div class="actions">
+        <button id="example">Пример бордюра</button>
+        <button id="open">Открыть JSON</button>
+        <button id="export">Сохранить JSON ↗</button>
+        <button id="compile" class="primary">▶ Проверить и собрать ASM</button>
+      </div>
+    </section>
+    <section class="editor-grid">
+      <div class="canvas-panel">
+        <div class="panel-heading"><strong>Логика программы</strong><span id="block-count">Блоки</span></div>
+        <div id="workspace" aria-label="Рабочее поле Blockly"></div>
+        <div class="canvas-footer"><span>Соединяй блоки под событиями. Цвет бордюра: 0–7.</span><button id="fit">Показать всё</button></div>
+      </div>
+      <aside>
+        <section class="properties">
+          <span class="eyebrow">ПРОЕКТ</span>
+          <label for="project-name">Название</label><input id="project-name" maxlength="120" autocomplete="off">
+          <div class="section-title"><h2>Переменные <small>u8 · 0–255</small></h2><button id="add-variable" aria-label="Добавить переменную">＋</button></div>
+          <div id="variables"></div>
+          <div class="layout-actions"><button id="save-layout">Сохранить рабочее место</button><button id="open-layout">Открыть</button></div>
+          <p class="muted">Расположение блоков сохраняется отдельно от JSON программы.</p>
+        </section>
+        <section class="output-panel">
+          <div class="tabs" role="tablist" aria-label="Результат"><button role="tab" aria-selected="true" id="json-tab">JSON</button><button role="tab" aria-selected="false" id="asm-tab">Z80 ASM</button><button id="download-asm" disabled aria-label="Скачать ассемблер">↓</button></div>
+          <pre id="output" tabindex="0" aria-label="Код проекта"></pre>
+        </section>
+      </aside>
+    </section>
+    <section id="status" role="status" aria-live="polite"><span class="status-dot"></span><span id="status-text">Загрузка редактора…</span><button id="locate-error" hidden>Показать блок →</button></section>
+  </main>
+  <footer><span>ZXBlocks <b>PRE-ALPHA</b></span><span>Блоки → JSON → Z80 · локальная мастерская</span></footer>
+  <input type="file" id="json-file" accept=".json,application/json" hidden>
+  <input type="file" id="layout-file" accept=".json,application/json" hidden>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

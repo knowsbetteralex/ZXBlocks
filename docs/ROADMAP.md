@@ -23,13 +23,26 @@ SLD source mappings were verified. No timing or contention measurements yet.
 
 ## M1 — visual editor
 
-- [ ] Pin a version of Blockly and document third-party licenses.
-- [ ] Toolbox/workspace for supported nodes, import/export zxblocks/v1.
-- [ ] Preserve editor layout separately from semantic IR.
-- [ ] Show compiler errors tied to blocks.
-- [ ] Convert the border example in both directions.
+- [x] Pin Blockly 13.4.0 and document third-party licenses.
+- [x] Toolbox/workspace for supported nodes, import/export zxblocks/v1.
+- [x] Preserve editor layout separately from semantic IR.
+- [x] Show compiler action errors tied to blocks; project errors remain global.
+- [x] Convert the border example in both directions, including identical Python-generated ASM.
+- [x] Local stdlib Python editor host, pinned frontend build and CI checks.
+- [ ] Interactive browser smoke test: import/edit/export, workspace restore, compile and error navigation.
 
 Acceptance: Blockly-authored border example matches hand-written IR behavior.
+
+Implementation: `feat/blockly-editor`. All 13 Blockly tests and 15 Python tests
+passed on 2026-11-04. Automated checks cover real headless
+Blockly workspaces, variable renaming, nested actions, independent layout,
+invalid input preservation, diagnostic mapping and the Python HTTP API.
+The example exported from an actual Blockly workspace was built with the CLI
+and sjasmplus: ASM, BIN and TAP matched the verified M0 artifacts byte for byte.
+Interactive browser acceptance is still pending: on 2026-11-04 Computer Use
+stopped because it could not reliably determine Chrome's current URL. See
+`editor/README.md` for startup, verification and known limitations. Complete
+that smoke test before proceeding to M2.
 
 ## M2 — timing and events
 
