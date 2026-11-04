@@ -16,6 +16,10 @@
 }
 body {
   margin: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 button,
 input,
@@ -55,6 +59,7 @@ button.primary:hover {
 }
 header {
   height: 72px;
+  flex-shrink: 0;
   background: #17273d;
   color: white;
   display: flex;
@@ -113,8 +118,12 @@ header {
 }
 main {
   padding: 24px 28px 0;
+  width: 100%;
   max-width: 1920px;
-  margin: auto;
+  margin: 0 auto;
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto minmax(540px, 1fr) auto;
 }
 .project-bar {
   display: flex;
@@ -145,12 +154,13 @@ h1 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 344px;
   gap: 18px;
-  height: calc(100vh - 249px);
-  min-height: 540px;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr);
 }
 .canvas-panel,
 aside {
   min-width: 0;
+  min-height: 0;
 }
 .canvas-panel {
   display: flex;
@@ -163,6 +173,7 @@ aside {
 }
 .panel-heading {
   height: 46px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -181,6 +192,7 @@ aside {
 }
 .canvas-footer {
   height: 42px;
+  flex-shrink: 0;
   border-top: 1px solid var(--line);
   padding: 0 14px;
   display: flex;
@@ -199,12 +211,14 @@ aside {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  overflow: auto;
 }
 .properties {
   background: white;
   border: 1px solid var(--line);
   border-radius: 9px;
   padding: 17px;
+  flex-shrink: 0;
 }
 .properties label {
   display: block;
@@ -212,8 +226,7 @@ aside {
   color: #617086;
   margin: 14px 0 5px;
 }
-.properties input,
-.properties select {
+.properties input {
   border: 1px solid #d7dfe8;
   background: #fafbfd;
   border-radius: 5px;
@@ -277,7 +290,7 @@ small {
   margin: 8px 0 0;
 }
 .output-panel {
-  flex: 1;
+  flex: 1 1 0;
   min-height: 180px;
   display: flex;
   flex-direction: column;
@@ -326,7 +339,8 @@ pre {
   margin: 0;
   padding: 14px 16px;
   overflow: auto;
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 0;
 }
 #status {
   min-height: 42px;
@@ -356,8 +370,10 @@ pre {
   margin-left: auto;
 }
 footer {
+  width: 100%;
   max-width: 1920px;
-  margin: auto;
+  margin: 0 auto;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   padding: 8px 31px 14px;
@@ -409,13 +425,20 @@ footer b {
   }
   .editor-grid {
     grid-template-columns: minmax(0, 1fr) 290px;
-    height: calc(100vh - 285px);
   }
   h1 {
     font-size: 22px;
   }
 }
 @media (max-width: 760px) {
+  body {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  main {
+    display: block;
+  }
   header {
     gap: 10px;
   }
@@ -439,6 +462,9 @@ footer b {
   }
   footer {
     gap: 15px;
+    flex-wrap: wrap;
+    padding-right: 16px;
+    padding-left: 16px;
   }
   .canvas-footer span {
     max-width: 65%;
@@ -466,12 +492,12 @@ footer b {
 .menu-items { position: absolute; top: calc(100% + 7px); right: 0; z-index: 100; width: 260px; max-height: calc(100vh - 210px); overflow-y: auto; background: white; border: 1px solid var(--line); border-radius: 9px; box-shadow: 0 10px 35px #17273d29; padding: 6px; }
 .menu-label { display: block; font-size: 10px; color: #738196; padding: 12px 10px 5px; text-transform: uppercase; letter-spacing: 1px; }
 .menu-items button { width: 100%; border: 0; text-align: left; padding: 9px 10px; font-weight: 400; }
-.editor-grid { height: calc(100vh - 265px); grid-template-columns: minmax(0, 1fr) 344px; }
+.editor-grid { grid-template-columns: minmax(0, 1fr) 344px; }
 .canvas-footer { height: auto; min-height: 42px; }
 #build-state { text-align: right; color: #4d6478; }
 .tabs { gap: 18px; }
 .tabs #download-asm { margin-left: auto; }
-#builds-panel { overflow-y: auto; flex: 1; padding: 0 15px; }
+#builds-panel { overflow-y: auto; flex: 1 1 0; min-height: 0; padding: 0 15px; }
 .empty-state { color: #a9bdd9; font-size: 12px; line-height: 1.6; padding: 7px 0; }
 .build-item { padding: 14px 0; color: #dfe9f9; border-bottom: 1px solid #3b495d; font-size: 12px; }
 .build-item p { color: #a9bdd9; font-size: 11px; line-height: 1.5; margin: 6px 0 9px; }

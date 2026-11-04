@@ -30,7 +30,7 @@ Blockly.common.defineBlocksWithJsonArray([
   {type: 'zxb_var', message0: '%1', args0: [variable], output: 'Byte', colour: 212},
   {type: 'zxb_key', message0: 'клавиша %1 нажата', args0: [
     {type: 'field_dropdown', name: 'KEY', options: KEY_NAMES.map(key => [key === 'SPACE' ? 'ПРОБЕЛ' : key, key])}],
-    output: 'Byte', colour: 154, tooltip: 'zxblocks/v2: 1 — нажата, 0 — отпущена. Состояние фиксируется перед каждым кадром.'},
+    output: 'Byte', colour: 154, tooltip: '1 — нажата, 0 — отпущена. Состояние фиксируется перед каждым кадром. Поддержка клавиатуры подключается автоматически.'},
 ]);
 
 export const toolbox = {kind: 'categoryToolbox', contents: [

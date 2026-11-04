@@ -24,8 +24,9 @@ The IR is the boundary between editor and compiler. Do not commit generated ASM/
 ## Compiler invariants
 
 - Supported input formats are zxblocks/v1 and the documented zxblocks/v2
-  keyboard extension (docs/BLOCK_IR_V2.md). Preserve v1 behavior, require an
-  explicit upgrade for v2-only expressions, and reject unsupported nodes.
+  keyboard extension (docs/BLOCK_IR_V2.md). Preserve v1 behavior and reject
+  unsupported nodes. The editor automatically promotes authored programs to
+  v2 when connected blocks require it; raw v1 JSON still rejects v2-only nodes.
 - Never eval input or interpolate arbitrary user text into ASM.
 - Deterministic output, stable labels, human-readable assembly and strict identifier checks.
 - MVP only supports unsigned bytes; change arithmetic wraps modulo 256.

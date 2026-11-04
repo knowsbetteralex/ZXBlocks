@@ -19,13 +19,18 @@ python -m zxblocks upgrade examples/border_cycle/project.json -o build/upgraded.
 The upgrade validates input, deep-copies it and changes only `format` to
 `zxblocks/v2`. Input is not overwritten unless explicitly chosen as output.
 Upgrading an already-v2 project is idempotent. A v1 project upgraded without
-adding new expressions emits byte-identical ASM. There is no automatic
-downgrade: remove key expressions before selecting v1 in the editor.
+adding new expressions emits byte-identical ASM. Compiler/CLI input remains
+strict: raw v1 JSON with key expressions is invalid and is never repaired
+implicitly by compilation or import.
 
-In Blockly, choose **v2 · клавиатура** in the project format selector, or open
-the keyboard-border example. A key block in a v1 project produces a linked
-diagnostic; the editor does not silently upgrade the project. The independent
-`zxblocks/editor/v1` workspace envelope can contain either project version.
+In Blockly, connecting a keyboard block automatically promotes the authored
+program to v2 on export/save. This editor policy replaces the former manual
+format selector at the user's request. Ordinary v1 programs remain v1, and
+already-v2 documents are not downgraded automatically. Removing every keyboard
+expression removes keyboard polling/runtime even if the container stays v2.
+Detached or disabled blocks are still draft errors, never silently compiled.
+The independent editor workspace containers can contain either IR version;
+saved editor metadata and valid IR must agree on that version.
 
 ## Keyboard vocabulary
 

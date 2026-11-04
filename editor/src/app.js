@@ -162,7 +162,11 @@ function refresh() {
   if (loading) return;
   workspace.getAllBlocks(false).forEach(block => block.setWarningText(null));
   $('block-count').textContent = `${workspace.getAllBlocks(false).length} блоков`;
-  try { currentExport = exportProject(workspace, metadata); status('Готово к запуску. F5 — запустить, Ctrl+S — сохранить.'); }
+  try {
+    currentExport = exportProject(workspace, metadata);
+    metadata.format = currentExport.project.format;
+    status('Готово к запуску. F5 — запустить, Ctrl+S — сохранить.');
+  }
   catch (error) { currentExport = null; showError(error); }
   if (programText() !== assemblySource) assembly = '';
   renderVariables(); renderBuilds(); showOutput(); scheduleSave();
@@ -185,7 +189,7 @@ function adopt(record, document = record.document) {
   clearTimeout(updateTimer); clearTimeout(saveTimer);
   try {
     metadata = loadDraft(workspace, document);
-    $('project-name').value = metadata.name; $('project-format').value = metadata.format;
+    $('project-name').value = metadata.name;
     assembly = ''; assemblySource = ''; builds = []; currentBuild = null;
     session = new ProjectSession(record, capture, {storage, changed: showSaveState});
     rememberActive();
@@ -280,7 +284,6 @@ async function runHistorical(number) {
 }
 
 $('project-name').addEventListener('input', () => { metadata.name = $('project-name').value; refresh(); });
-$('project-format').addEventListener('change', () => { metadata.format = $('project-format').value; refresh(); });
 $('open').addEventListener('click', showProjects);
 $('project-picker').addEventListener('click', showProjects);
 $('save').addEventListener('click', () => saveCurrent().then(() => {

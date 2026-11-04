@@ -1,11 +1,76 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {Blockly} from '../src/blocks.js';
 import {importProject, exportProject, saveDraft, loadDraft} from '../src/workspace.js';
 import {ProjectSession, recoveryKey} from '../src/project-session.js';
 
 const example = JSON.parse(readFileSync(new URL('../../examples/border_cycle/project.json', import.meta.url)));
+
+function connectKeyboard(workspace) {
+  const border = workspace.getAllBlocks(false).find(block => block.type === 'zxb_border');
+  border.getInputTargetBlock('VALUE').dispose();
+  const key = workspace.newBlock('zxb_key');
+  border.getInput('VALUE').connection.connect(key.outputConnection);
+  return {border, key};
+}
+
+test('automatic keyboard capability is saved consistently and restored without a format selector', () => {
+  const workspace = new Blockly.Workspace();
+  try {
+    const metadata = importProject(workspace, example);
+    connectKeyboard(workspace);
+    const saved = saveDraft(workspace, metadata);
+    assert.equal(saved.metadata.format, 'zxblocks/v2');
+    assert.equal(saved.project.format, 'zxblocks/v2');
+    const restored = loadDraft(workspace, saved);
+    assert.equal(restored.format, 'zxblocks/v2');
+    assert.deepEqual(exportProject(workspace, restored).project, saved.project);
+    const tampered = structuredClone(saved); tampered.metadata.format = 'zxblocks/v1';
+    assert.throws(() => loadDraft(workspace, tampered), /не совпадают/);
+    assert.deepEqual(exportProject(workspace, restored).project, saved.project);
+  } finally { workspace.dispose(); }
+});
+
+test('a detached keyboard draft is retained and enables the capability only when connected', () => {
+  const workspace = new Blockly.Workspace();
+  try {
+    const metadata = importProject(workspace, example);
+    const key = workspace.newBlock('zxb_key');
+    const saved = saveDraft(workspace, metadata);
+    assert.equal(saved.metadata.format, 'zxblocks/v1');
+    assert.equal(saved.project, null);
+    const restored = loadDraft(workspace, saved);
+    assert.ok(workspace.getBlockById(key.id));
+    const border = workspace.getAllBlocks(false).find(block => block.type === 'zxb_border');
+    border.getInputTargetBlock('VALUE').dispose();
+    border.getInput('VALUE').connection.connect(workspace.getBlockById(key.id).outputConnection);
+    assert.equal(exportProject(workspace, restored).project.format, 'zxblocks/v2');
+  } finally { workspace.dispose(); }
+});
+
+test('removing the last keyboard block removes keyboard runtime without downgrading a saved document', () => {
+  const workspace = new Blockly.Workspace();
+  try {
+    const metadata = importProject(workspace, example);
+    connectKeyboard(workspace);
+    const saved = saveDraft(workspace, metadata);
+    const restored = loadDraft(workspace, saved);
+    const border = workspace.getAllBlocks(false).find(block => block.type === 'zxb_border');
+    border.getInputTargetBlock('VALUE').dispose();
+    const number = workspace.newBlock('zxb_byte');
+    border.getInput('VALUE').connection.connect(number.outputConnection);
+    const result = exportProject(workspace, restored);
+    assert.equal(result.project.format, 'zxblocks/v2');
+    assert.deepEqual(result.capabilities, []);
+    const python = process.env.ZXBLOCKS_PYTHON || (process.platform === 'win32' ? '../.venv/Scripts/python.exe' : '../.venv/bin/python');
+    const script = 'import json,sys; from zxblocks import compile_project; keyed,plain=json.load(sys.stdin); assert "ZXB_RT_KEY_POLL" in compile_project(keyed); assert "ZXB_RT_KEY_POLL" not in compile_project(plain); legacy=dict(plain,format="zxblocks/v1"); assert compile_project(plain)==compile_project(legacy)';
+    const child = spawnSync(python, ['-c', script], {input: JSON.stringify([saved.project, result.project]), encoding: 'utf8', cwd: fileURLToPath(new URL('..', import.meta.url))});
+    assert.equal(child.status, 0, child.stderr || child.error?.message);
+  } finally { workspace.dispose(); }
+});
 
 test('A → B → A restores unfinished blocks, IDs, positions and initial values', () => {
   const workspace = new Blockly.Workspace();

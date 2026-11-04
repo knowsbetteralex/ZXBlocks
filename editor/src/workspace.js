@@ -45,6 +45,7 @@ export function importProject(workspace, input) {
 export function exportProject(workspace, metadata) {
   const sourceMap = {};
   const visited = new Set();
+  const capabilities = new Set();
   const fail = (message, block) => { throw new EditorError(message, '', block?.id); };
   const variableName = block => {
     const variable = block.getField('VAR').getVariable();
@@ -56,7 +57,10 @@ export function exportProject(workspace, metadata) {
     visited.add(block.id); sourceMap[path] = block.id;
     if (block.type === 'zxb_byte') return Number(block.getFieldValue('NUM'));
     if (block.type === 'zxb_var') return {var: variableName(block)};
-    if (block.type === 'zxb_key') return {key: block.getFieldValue('KEY')};
+    if (block.type === 'zxb_key') {
+      capabilities.add('keyboard');
+      return {key: block.getFieldValue('KEY')};
+    }
     fail('Ожидается байтовое значение', block);
   };
   let count = 0;
@@ -96,9 +100,10 @@ export function exportProject(workspace, metadata) {
   }
   const variables = workspace.getVariableMap().getAllVariables().map(variable => ({name: variable.getName(), initial: Object.hasOwn(metadata.initials, variable.getId()) ? metadata.initials[variable.getId()] : 0}));
   const project = {format: metadata.format ?? 'zxblocks/v1', name: metadata.name, variables, events};
+  if (project.format === 'zxblocks/v1' && capabilities.has('keyboard')) project.format = 'zxblocks/v2';
   try { validateProject(project); }
   catch (error) { error.blockId ??= blockForPath(sourceMap, error.path); throw error; }
-  return {project, sourceMap};
+  return {project, sourceMap, capabilities: [...capabilities]};
 }
 
 export function saveEditorState(workspace, metadata) {
@@ -134,7 +139,10 @@ export function saveDraft(workspace, metadata) {
   const document = {format: 'zxblocks/editor/v2', metadata: structuredClone(metadata),
     workspace: Blockly.serialization.workspaces.save(workspace),
     view: {scale: workspace.scale ?? 1, scrollX: workspace.scrollX ?? 0, scrollY: workspace.scrollY ?? 0}};
-  try { document.project = exportProject(workspace, metadata).project; }
+  try {
+    document.project = exportProject(workspace, metadata).project;
+    document.metadata.format = document.project.format;
+  }
   catch { document.project = null; }
   return document;
 }
@@ -169,6 +177,7 @@ export function loadDraft(workspace, document) {
     Blockly.serialization.workspaces.load(document.workspace, scratch);
     if (document.project != null) {
       validateProject(document.project);
+      if (document.project.format !== metadata.format || document.project.name !== metadata.name) throw new EditorError('Свойства не совпадают с JSON программы');
       if (JSON.stringify(exportProject(scratch, metadata).project) !== JSON.stringify(document.project)) throw new EditorError('Блоки не совпадают с JSON программы');
     }
   } finally { scratch.dispose(); }

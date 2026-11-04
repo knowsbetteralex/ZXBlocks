@@ -33,6 +33,8 @@ SLD source mappings were verified. No timing or contention measurements yet.
 - [x] Project list, clear Open/Save/Run toolbar, grouped menu and safe project switching.
 - [x] Filesystem draft saving, separate recovery per project and explicit editor-container migration.
 - [x] Per-project numbered/classified builds, persistent history and verified build reuse.
+- [x] Infer capabilities from connected blocks, automatically select required IR version and remove the manual selector.
+- [x] Keep the page footer after the editor in responsive document flow.
 - [ ] Browser acceptance of project switching, draft restore, menu, downloads and run.
 - [ ] Interactive browser smoke test: import/edit/export, workspace restore, compile and error navigation.
 
@@ -72,6 +74,16 @@ checked its 73-byte BIN and 48K SNA entry/stack, reused its build for EmuZWin
 launch and again after restarting the API host. EmuZWin reported responsive in
 Spectrum 48K mode; input source files were unchanged. This is backend/process
 evidence, not a visual or browser-click acceptance test.
+
+Follow-up in `fix/editor-features-footer`: connected keyboard blocks now
+automatically promote editor exports/saves to v2; raw IR import and the Python
+compiler still validate declared versions strictly. The manual format selector
+was removed. 61 Python tests and 24 Blockly/persistence tests passed. An isolated
+Chrome headless check exercised three window sizes with 20 added variables and
+40 build-history rows: the history scrolls inside its panel, the footer follows
+the editor and remains reachable at the page bottom, without horizontal page
+overflow or JavaScript errors. A full interactive menu/import/run acceptance
+test remains open; Computer Use's native/browser hosts were unavailable.
 
 ## M2 — timing and events
 

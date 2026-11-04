@@ -134,14 +134,19 @@ test('v2 keyboard project and editor layout round-trip without downgrading', () 
   assert.deepEqual(exportProject(workspace, restored).project, project);
 }));
 
-test('key blocks in v1 identify the block and require explicit format change', () => withWorkspace(workspace => {
-  const project = JSON.parse(readFileSync(new URL('../../examples/keyboard_border/project.json', import.meta.url)));
-  const metadata = importProject(workspace, project);
-  const key = workspace.getAllBlocks(false).find(block => block.type === 'zxb_key');
-  metadata.format = 'zxblocks/v1';
-  assert.throws(() => exportProject(workspace, metadata), error => error.blockId === key.id && /v2/.test(error.message));
-  metadata.format = 'zxblocks/v2';
-  assert.deepEqual(exportProject(workspace, metadata).project, project);
+test('connected key blocks automatically enable v2 while malformed v1 imports stay rejected', () => withWorkspace(workspace => {
+  const metadata = importProject(workspace, example);
+  const border = workspace.getAllBlocks(false).find(block => block.type === 'zxb_border');
+  border.getInputTargetBlock('VALUE').dispose();
+  const key = workspace.newBlock('zxb_key');
+  border.getInput('VALUE').connection.connect(key.outputConnection);
+  const result = exportProject(workspace, metadata);
+  assert.equal(result.project.format, 'zxblocks/v2');
+  assert.deepEqual(result.capabilities, ['keyboard']);
+  assert.equal(result.sourceMap['events.frame[2].arg'], key.id);
+  const invalidInput = {...result.project, format: 'zxblocks/v1'};
+  assert.throws(() => importProject(workspace, invalidInput), /v2/);
+  assert.deepEqual(exportProject(workspace, metadata).project, result.project);
 }));
 
 test('physical key vocabulary matches the Python compiler and every key round-trips', () => withWorkspace(workspace => {

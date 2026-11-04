@@ -39,7 +39,7 @@ export function validateProject(project) {
     if (typeof value === 'number') integer(value, 0, 255, path);
     else if (value && typeof value === 'object' && Object.hasOwn(value, 'key')) {
       object(value, ['key'], path);
-      if (project.format !== 'zxblocks/v2') fail('Клавиатура требует zxblocks/v2. Выберите v2 в формате проекта.', path);
+      if (project.format !== 'zxblocks/v2') fail('JSON с клавиатурой должен иметь формат zxblocks/v2.', path);
       if (!KEY_NAMES.includes(value.key)) fail('Неизвестная физическая клавиша', path);
     } else { object(value, ['var'], path); ref(value.var, path); }
   };

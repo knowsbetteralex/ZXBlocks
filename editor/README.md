@@ -26,9 +26,11 @@ or CDN is required. sjasmplus is needed for CLI BIN/TAP builds, not for editing.
 - Import/export uses the normal project JSON, preserving action and declaration order.
 - Supported blocks: start/frame, set/change, if/else with eq/ne/lt/ge, set_border,
   byte literals and variable references. All variables are unsigned bytes.
-- In v2, the key-pressed block is a byte expression (1/0). Use the project format
-  selector to explicitly choose v2, or open the keyboard-border example.
-  v1 rejects key blocks without silently upgrading. The 40 physical key names
+- The key-pressed block is a byte expression (1/0). Connecting it to a program
+  automatically enables keyboard support and exports v2; there is no format
+  selector. A plain v1 program still exports v1, and already-v2 documents keep
+  their version. Removing all key expressions excludes keyboard runtime.
+  Raw v1 JSON containing key expressions is still rejected on import. The 40 physical key names
   match the Python target; they are not composed BASIC symbols.
 - Add variables and edit their initial values in the project panel. Renaming
   updates references. Remove a variable after removing/replacing its uses.
@@ -55,6 +57,10 @@ normalizes omitted optional arrays/defaults and reference spelling to the
 declared variable name; it preserves program semantics, not arbitrary JSON
 formatting or unsupported extension fields. Disabled/detached blocks are
 reported rather than silently omitted.
+
+The page footer follows the editor and status in normal document flow. Desktop
+height is allocated by the page layout; narrow screens stack the panels and
+put the footer after them, with page scrolling when necessary.
 
 ## Files and boundaries
 
@@ -117,3 +123,11 @@ EmuZWin. Detached-block restoration, concurrent saves, offline recovery,
 revision conflicts, separated project histories, missing artifacts and failed
 builds have automated coverage. Interactive menu/switching review remains open:
 Computer Use's native pipe and browser access host were unavailable.
+
+The automatic-capability/footer follow-up passed 61 Python and 24 Blockly tests.
+New checks cover inferred keyboard support, saved metadata/IR agreement,
+strict import, draft restore and removal of unused keyboard runtime. Isolated
+Chrome headless layout checks passed for three window sizes with long variable
+and build lists; the footer stays after the editor and can be reached by page
+scrolling. This covers responsive layout, not the full menu/import/run browser
+acceptance checklist.

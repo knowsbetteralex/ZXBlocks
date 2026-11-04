@@ -51,6 +51,10 @@ starts the locally configured `emuz` executable with the native snapshot path.
 No IR version, runtime instruction or ABI change is involved in packaging.
 
 The editor now manages named projects with stable IDs in `projects/<id>/`.
+It infers capabilities from connected blocks: keyboard expressions promote
+authored exports to v2 automatically. Raw IR import and compiler validation
+remain strict about the declared version; IR schemas and the runtime ABI do
+not change. Removing unused keyboard blocks removes their runtime routines.
 Its `zxblocks/editor/v2` container separates Blockly drafts/viewport from an
 optional valid compiler IR. Old `zxblocks/editor/v1` files remain importable;
 the old browser autosave is migrated explicitly without changing compiler IR.

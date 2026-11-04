@@ -24,12 +24,19 @@ date/time, machine-code size, TAP/SNA downloads, logs and an explicit action to
 launch that historical snapshot. JSON and Z80 ASM are secondary tabs. Save
 status and whether the program matches a build are shown separately.
 
+Program capabilities are inferred from connected blocks. A keyboard expression
+automatically selects compiler IR v2 during export/save; no format selector or
+confirmation is needed. Detached draft blocks do not enable a capability.
+Previously v2 documents keep their version; removing the last keyboard use
+excludes keyboard polling/runtime. Raw imported IR is validated against its
+declared version before the editor touches the open project.
+
 ## Editor document v2 and migration
 
 Compiler formats `zxblocks/v1` and `zxblocks/v2` and the Z80 ABI are unchanged.
 `zxblocks/editor/v2` is a new **editor container**, with:
 
-- `metadata`: name, selected IR format, initial values keyed by variable IDs;
+- `metadata`: name, current IR format, initial values keyed by variable IDs;
 - `workspace`: Blockly serialization, including IDs, positions and detached blocks;
 - `view`: scale, horizontal and vertical scroll;
 - `project`: a matching valid compiler IR, or `null` for an unfinished draft.
