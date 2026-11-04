@@ -310,6 +310,15 @@ small {
   margin-left: auto;
   font-size: 17px;
 }
+#artifacts {
+  padding: 8px 15px;
+  border-bottom: 1px solid #3b495d;
+  font-size: 11px;
+}
+#artifacts a {
+  color: #bad4ff;
+  margin-right: 18px;
+}
 pre {
   font: 11px/1.8 Consolas, monospace;
   tab-size: 2;

@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import json
+import re
 import socket
+import threading
+import uuid
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .compiler import CompileError, compile_project
+from .runner import ARTIFACT_NAMES, build_project, launch_emulator, require_tool
 
 MAX_REQUEST_BYTES = 1024 * 1024
 EDITOR_DIST = Path(__file__).resolve().parents[2] / "editor" / "dist"
+EDITOR_BUILDS = Path(__file__).resolve().parents[2] / "build" / "editor"
 
 
 class EditorHTTPServer(ThreadingHTTPServer):
@@ -39,7 +44,7 @@ class EditorHandler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self) -> None:
-        if self.path != "/api/compile":
+        if self.path not in ("/api/compile", "/api/build", "/api/run"):
             self._json(404, {"error": {"message": "Unknown endpoint", "path": None}})
             return
         origin = self.headers.get("Origin")
@@ -55,16 +60,66 @@ class EditorHandler(SimpleHTTPRequestHandler):
                 return
             project = json.loads(self.rfile.read(length).decode("utf-8"))
             asm = compile_project(project)
-        except (CompileError, ValueError, UnicodeError, RecursionError) as exc:
+            if self.path == "/api/compile":
+                self._json(200, {"asm": asm})
+                return
+            with self.server.operation_lock:
+                launch = self.path == "/api/run"
+                if launch:
+                    require_tool(self.server.emulator)
+                job = uuid.uuid4().hex
+                # Fresh directory per request: running snapshots are immutable,
+                # and no client-supplied filename or path is accepted.
+                result = build_project(project, self.server.build_root / job, self.server.assembler)
+                process = launch_emulator(result, self.server.emulator) if launch else None
+                if process:
+                    self.server.emulator_processes = [p for p in self.server.emulator_processes if p.poll() is None]
+                    self.server.emulator_processes.append(process)
+                self.server.builds[job] = result
+            self._json(200, {
+                "asm": asm, "code_size": result.code_size, "launched": launch,
+                "artifacts": {file.suffix[1:]: f"/api/artifacts/{job}/{file.name}" for file in result.files},
+            })
+        except (CompileError, ValueError, UnicodeError, RecursionError, OSError) as exc:
             self._json(400, {"error": {"message": str(exc), "path": getattr(exc, "path", None)}})
+
+    def do_GET(self) -> None:
+        if not self.path.startswith("/api/artifacts/"):
+            super().do_GET()
             return
-        self._json(200, {"asm": asm})
+        match = re.fullmatch(r"/api/artifacts/([0-9a-f]{32})/(project\.[a-z]+)", self.path)
+        result = self.server.builds.get(match[1]) if match else None
+        if not result or match[2] not in ARTIFACT_NAMES:
+            self._json(404, {"error": {"message": "Unknown build artifact", "path": None}})
+            return
+        try:
+            content = (result.directory / match[2]).read_bytes()
+        except OSError:
+            self._json(404, {"error": {"message": "Build artifact is no longer available", "path": None}})
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", self.guess_type(match[2]))
+        self.send_header("Content-Disposition", f'attachment; filename="{match[2]}"')
+        self.send_header("Content-Length", str(len(content)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(content)
 
 
-def create_editor_server(port: int = 8765, directory: Path = EDITOR_DIST) -> ThreadingHTTPServer:
+def create_editor_server(
+    port: int = 8765, directory: Path = EDITOR_DIST, *,
+    build_root: Path = EDITOR_BUILDS, assembler: str = "sjasmplus", emulator: str = "emuz",
+) -> ThreadingHTTPServer:
     if not (directory / "index.html").is_file():
         raise ValueError("Editor is not built. Run 'npm ci' then 'npm run build' in editor/.")
-    return EditorHTTPServer(("127.0.0.1", port), partial(EditorHandler, directory=str(directory)))
+    server = EditorHTTPServer(("127.0.0.1", port), partial(EditorHandler, directory=str(directory)))
+    server.build_root = build_root.resolve()
+    server.assembler = assembler
+    server.emulator = emulator
+    server.builds = {}
+    server.emulator_processes = []
+    server.operation_lock = threading.Lock()
+    return server
 
 
 def serve_editor(port: int = 8765, open_browser: bool = False) -> None:

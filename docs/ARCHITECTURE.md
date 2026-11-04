@@ -43,10 +43,25 @@ IDs and positions are never inserted into semantic IR. Build the frontend
 with the pinned npm dependencies; no Node service or external CDN is needed
 while editing. The Python compiler remains independently usable.
 
+`POST /api/build` and `/api/run` take the same current project IR. A shared
+stdlib runner validates and compiles it, generates a fixed-name snapshot
+wrapper, assembles BIN/SNA/SLD with sjasmplus and packages CODE TAP. Run then
+starts the locally configured `emuz` executable with the native snapshot path.
+`zxblocks run <project.json>` exposes the same runner without the browser.
+No IR version, runtime instruction or ABI change is involved in packaging.
+
+Each web build writes to a fresh server-owned `build/editor/<id>/` directory,
+not a client-supplied path. Completed builds expose only their six known
+artifact filenames through `/api/artifacts/<id>/<filename>`. Requests use the
+existing same-origin check; clients cannot supply executables or shell commands.
+No shell is used. Wrapper directives and filenames are constants, so project
+titles never become assembler text. Failed builds never launch a stale file.
+
 Workspace files use a separate `zxblocks/editor/v1` envelope with `project`,
 Blockly `workspace` state and initial values keyed by editor variable IDs.
 Workspace restore validates the semantic snapshot before replacing the open
-project. Normal JSON exports contain only `zxblocks/v1` project data.
+project. Normal JSON exports contain only the selected `zxblocks/v1` or
+`zxblocks/v2` project data.
 
 ## Execution
 

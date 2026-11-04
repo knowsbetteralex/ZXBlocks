@@ -37,3 +37,12 @@ before start and once per frame, then reuse samples in expressions. This gives
 consistent per-row state within an update without busy waiting or a block
 interpreter. Start with keyboard input and an independent reference model;
 design non-blocking timers and procedures as the next focused slice.
+
+## ADR-009 — build and run the current project (2026-11-04)
+
+Share a fixed-name 48K snapshot packager between the local editor and CLI run
+command. Accept the current IR directly, without copying downloads into an
+example folder or requiring per-project assembler wrappers. Keep immutable
+per-request web build directories, fixed artifact names, same-origin requests
+and server-selected executables. This reduces manual steps while preserving
+the editor/compiler IR boundary and all existing v1/v2 generated instructions.

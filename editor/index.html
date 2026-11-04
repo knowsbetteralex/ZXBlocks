@@ -20,7 +20,8 @@
         <button id="keyboard-example">Бордюр с клавиатурой</button>
         <button id="open">Открыть JSON</button>
         <button id="export">Сохранить JSON ↗</button>
-        <button id="compile" class="primary">▶ Проверить и собрать ASM</button>
+        <button id="build">Собрать TAP/SNA</button>
+        <button id="run" class="primary" title="Собрать текущие блоки и открыть EmuZWin">▶ Запустить</button>
       </div>
     </section>
     <section class="editor-grid">
@@ -41,7 +42,8 @@
           <p class="muted">Расположение блоков сохраняется отдельно от JSON программы.</p>
         </section>
         <section class="output-panel">
-          <div class="tabs" role="tablist" aria-label="Результат"><button role="tab" aria-selected="true" id="json-tab">JSON</button><button role="tab" aria-selected="false" id="asm-tab">Z80 ASM</button><button id="download-asm" disabled aria-label="Скачать ассемблер">↓</button></div>
+          <div class="tabs" role="tablist" aria-label="Результат"><button role="tab" aria-selected="true" id="json-tab">JSON</button><button role="tab" aria-selected="false" id="asm-tab">Z80 ASM</button><button id="compile" title="Проверить проект и получить ASM">Проверить ASM</button><button id="download-asm" disabled aria-label="Скачать ассемблер">↓</button></div>
+          <div id="artifacts" hidden><a id="download-tap">Скачать TAP</a><a id="download-sna">Скачать SNA</a></div>
           <pre id="output" tabindex="0" aria-label="Код проекта"></pre>
         </section>
       </aside>

@@ -50,5 +50,5 @@ jobs:
           git clone --recursive --depth 1 --branch v1.21.0 https://github.com/z00m128/sjasmplus.git "$RUNNER_TEMP/sjasmplus"
           make -C "$RUNNER_TEMP/sjasmplus" -j2 USE_LUA=0
           echo "$RUNNER_TEMP/sjasmplus/build/release" >> "$GITHUB_PATH"
-      - name: Execute assembled keyboard programs against reference inputs
-        run: python -m unittest discover -s tests -p test_z80_keyboard.py -v
+      - name: Run compiler, snapshot builder and assembled Z80 integration tests
+        run: python -m unittest discover -s tests -v

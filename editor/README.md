@@ -26,7 +26,15 @@ or CDN is required. sjasmplus is needed for CLI BIN/TAP builds, not for editing.
   match the Python target; they are not composed BASIC symbols.
 - Add variables and edit their initial values in the project panel. Renaming
   updates references. Remove a variable after removing/replacing its uses.
-- The compiler button returns Python-generated ASM. Action diagnostics resolve
+- **Запустить** builds the current in-memory IR and opens its SNA in EmuZWin.
+  No JSON download/copy, hard-coded example path or manual ASM wrapper is needed.
+  `sjasmplus` and `emuz` must be on the editor server's PATH.
+- **Собрать TAP/SNA** builds without launching; download links appear above the
+  code. Each request gets its own directory under `build/editor/`. Source
+  projects and previous snapshots are not overwritten. Build links remain
+  available during the server session; files persist until build/ is cleaned.
+- **Проверить ASM** returns Python-generated ASM without an assembler.
+  Action diagnostics resolve
   to a block via an editor-only source map; the error button selects that block.
 - Save/open a workspace file to preserve positions, IDs, collapsed state and
   the project. The envelope format `zxblocks/editor/v1` is separate from the IR.
@@ -46,6 +54,8 @@ reported rather than silently omitted.
 - `src/workspace.js`: Blockly ↔ IR and independent editor-state serialization.
 - `src/app.js`, `index.html`, `src/styles.css`: browser UI; no Z80 generator.
 - `src/zxblocks/editor.py` in the repository: stdlib HTTP host, `/api/compile`.
+- `src/zxblocks/runner.py`: fixed snapshot packaging and local emulator launch,
+  shared by `/api/build`, `/api/run` and the independent `zxblocks run` command.
 - `tests/`: real headless Blockly round trips, layout persistence, diagnostics,
   variable changes and a cross-language comparison of generated ASM.
 - `scripts/build.mjs`: esbuild bundle, local media, license notices and example.
@@ -56,9 +66,11 @@ Blockly 13.4.0 and esbuild 0.28.2 are pinned with a lockfile. See
 
 ## Current limits and verification
 
-There is no in-browser Spectrum emulator, TAP builder, sprite editor, timer or
-user-procedure support. Download JSON and use the existing CLI/DeZog/EmuZWin tasks
-for a Spectrum run. The server serves a built repository checkout; standalone
+There is no embedded Spectrum emulator, sprite editor, timer or user-procedure
+support. The browser's run button launches the separate local EmuZWin app;
+existing DeZog configurations remain available for the configured examples.
+TAP downloads remain CODE-only; SNA provides direct startup. The server serves
+a built repository checkout; standalone
 Python wheels do not include editor assets. Changes to frontend sources require
 `npm run build` and a page reload.
 
@@ -77,3 +89,9 @@ The keyboard slice adds real-Blockly tests for v2 import/export, editor-state
 restore, explicit format selection and all 40 key names. Browser/48K emulator
 QA for the new keyboard example is also still pending. See
 [the v2 specification](../docs/BLOCK_IR_V2.md) for migration and sampling rules.
+
+The build/run slice adds HTTP tests for current-project snapshots, immutable
+build links, missing tools, failed-build launch prevention, artifact access
+and origin checks. Native sjasmplus tests validate generic v1/v2 BIN/SNA/SLD
+output and native emulator path arguments. Interactive browser coverage is
+still recorded separately; backend tests do not imply a browser click test.

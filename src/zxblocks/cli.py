@@ -22,6 +22,11 @@ def main(argv: list[str] | None = None) -> int:
     build_cmd.add_argument("project", type=Path)
     build_cmd.add_argument("-o", "--output-dir", type=Path, default=Path("build"))
     build_cmd.add_argument("--assembler", default="sjasmplus")
+    run_cmd = commands.add_parser("run", help="Build any project as a 48K snapshot and open EmuZWin")
+    run_cmd.add_argument("project", type=Path)
+    run_cmd.add_argument("-o", "--output-dir", type=Path, default=Path("build/run"))
+    run_cmd.add_argument("--assembler", default="sjasmplus")
+    run_cmd.add_argument("--emulator", default="emuz")
     editor_cmd = commands.add_parser("editor", help="Serve the local Blockly editor")
     editor_cmd.add_argument("--port", type=int, default=8765)
     editor_cmd.add_argument("--open", action="store_true", help="Open the editor in a browser")
@@ -42,6 +47,14 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         with args.project.open("r", encoding="utf-8") as source:
             project = json.load(source)
+        if args.command == "run":
+            from .runner import build_project, launch_emulator, require_tool
+            require_tool(args.emulator)
+            result = build_project(project, args.output_dir, args.assembler)
+            process = launch_emulator(result, args.emulator)
+            print(f"Built {result.code_size} code bytes in {result.directory}")
+            print(f"Launched {args.emulator}: {result.snapshot} (PID {process.pid})")
+            return 0
         if args.command == "upgrade":
             from .migrate import upgrade_to_v2
             upgraded = upgrade_to_v2(project)

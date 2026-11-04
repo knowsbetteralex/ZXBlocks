@@ -12,6 +12,7 @@ const workspace = Blockly.inject('workspace', {
 let metadata = {name: 'Новый проект', initials: {}};
 let currentExport = null;
 let assembly = '';
+let artifacts = null;
 let selectedTab = 'json';
 let errorBlock = null;
 let updateTimer;
@@ -25,11 +26,19 @@ function status(message, error = false, blockId = null) {
 
 function showOutput() {
   $('output').textContent = selectedTab === 'asm'
-    ? assembly || 'Нажмите «Проверить и собрать ASM», чтобы скомпилировать проект.'
+    ? assembly || 'Нажмите «Проверить ASM», «Собрать TAP/SNA» или «Запустить».'
     : currentExport ? JSON.stringify(currentExport.project, null, 2) : 'Подключите блоки и исправьте ошибку, чтобы получить JSON.';
   $('json-tab').setAttribute('aria-selected', String(selectedTab === 'json'));
   $('asm-tab').setAttribute('aria-selected', String(selectedTab === 'asm'));
   $('download-asm').disabled = !assembly;
+  $('artifacts').hidden = !artifacts;
+  if (artifacts) {
+    $('download-tap').href = artifacts.tap;
+    $('download-sna').href = artifacts.sna;
+  } else {
+    $('download-tap').removeAttribute('href');
+    $('download-sna').removeAttribute('href');
+  }
 }
 
 function download(value, filename, type = 'application/json') {
@@ -89,11 +98,11 @@ function refresh() {
   $('block-count').textContent = `${workspace.getAllBlocks(false).length} блоков`;
   try {
     currentExport = exportProject(workspace, metadata);
-    if (JSON.stringify(currentExport.project) !== previousProject) assembly = '';
+    if (JSON.stringify(currentExport.project) !== previousProject) { assembly = ''; artifacts = null; }
     status('Проект готов к сборке. Изменения сохраняются в этом браузере.');
     try { localStorage.setItem(storageKey, JSON.stringify(saveEditorState(workspace, metadata))); }
     catch { status('Проект готов. Автосохранение недоступно — сохраните рабочее место в файл.'); }
-  } catch (error) { currentExport = null; assembly = ''; showError(error); }
+  } catch (error) { currentExport = null; assembly = ''; artifacts = null; showError(error); }
   renderVariables(); showOutput();
 }
 
@@ -152,23 +161,27 @@ $('locate-error').addEventListener('click', () => {
 $('json-tab').addEventListener('click', () => { selectedTab = 'json'; showOutput(); });
 $('asm-tab').addEventListener('click', () => { selectedTab = 'asm'; showOutput(); });
 $('download-asm').addEventListener('click', () => { if (assembly) download(assembly, 'project.asm', 'text/plain'); });
-$('compile').addEventListener('click', async () => {
+async function buildCurrentProject(action) {
   let snapshot;
   try {
     snapshot = exportProject(workspace, metadata);
-    $('compile').disabled = true;
-    status('Компилируем программу…');
-    const response = await fetch('/api/compile', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(snapshot.project)});
+    for (const id of ['compile', 'build', 'run']) $(id).disabled = true;
+    status(action === 'run' ? 'Собираем текущую программу и открываем EmuZWin…' : 'Собираем текущую программу…');
+    const response = await fetch(`/api/${action}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(snapshot.project)});
     const result = await response.json();
     if (!response.ok) { showError(result.error, snapshot.sourceMap); return; }
     if (JSON.stringify(exportProject(workspace, metadata).project) !== JSON.stringify(snapshot.project)) {
-      status('Программа изменилась во время сборки. Нажмите собрать ещё раз.'); return;
+      status(result.launched ? 'Собранная версия открыта в EmuZWin. Блоки успели измениться — нажмите «Запустить» ещё раз.' : 'Программа изменилась во время сборки. Нажмите собрать ещё раз.'); return;
     }
-    assembly = result.asm; selectedTab = 'asm'; showOutput();
-    status('Готово: Z80 ASM собран. Скачайте его или сохраните JSON для сборки TAP.');
+    assembly = result.asm; artifacts = result.artifacts ?? artifacts; selectedTab = 'asm'; showOutput();
+    status(result.launched ? 'Программа открыта в EmuZWin. Изменяйте блоки и нажимайте «Запустить» для новой сборки.' :
+      result.artifacts ? `Готово: ${result.code_size} байт машинного кода. TAP и SNA доступны для скачивания.` : 'Готово: Z80 ASM собран. Для запуска нажмите «Запустить».');
   } catch (error) { showError(error.message === 'Failed to fetch' ? new Error('Нет связи с компилятором. Запустите zxblocks editor.') : error, snapshot?.sourceMap); }
-  finally { $('compile').disabled = false; }
-});
+  finally { for (const id of ['compile', 'build', 'run']) $(id).disabled = false; }
+}
+$('compile').addEventListener('click', () => buildCurrentProject('compile'));
+$('build').addEventListener('click', () => buildCurrentProject('build'));
+$('run').addEventListener('click', () => buildCurrentProject('run'));
 
 workspace.addChangeListener(event => {
   if (event.isUiEvent) return;

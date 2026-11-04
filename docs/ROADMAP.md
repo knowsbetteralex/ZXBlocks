@@ -29,6 +29,7 @@ SLD source mappings were verified. No timing or contention measurements yet.
 - [x] Show compiler action errors tied to blocks; project errors remain global.
 - [x] Convert the border example in both directions, including identical Python-generated ASM.
 - [x] Local stdlib Python editor host, pinned frontend build and CI checks.
+- [x] Build/run the current editor project directly; generic CLI run and TAP/SNA downloads.
 - [ ] Interactive browser smoke test: import/edit/export, workspace restore, compile and error navigation.
 
 Acceptance: Blockly-authored border example matches hand-written IR behavior.
@@ -39,6 +40,14 @@ Blockly workspaces, variable renaming, nested actions, independent layout,
 invalid input preservation, diagnostic mapping and the Python HTTP API.
 The example exported from an actual Blockly workspace was built with the CLI
 and sjasmplus: ASM, BIN and TAP matched the verified M0 artifacts byte for byte.
+Build/run workflow verified on 2026-11-04: 50 Python tests and 16 Blockly tests
+passed locally, including generic v1/v2 snapshot assembly and HTTP build/run
+contracts. A custom project was submitted to `/api/run`: its 73-byte BIN,
+48K SNA entry/stack and six artifact downloads were checked; EmuZWin launched
+the snapshot in Spectrum 48K mode and reported responsive. Source JSON and
+workspace hashes stayed unchanged. This confirms the backend/process route,
+not a browser-button or visual emulator test. Computer Use's native pipe and
+browser host were unavailable for that UI verification.
 Interactive browser acceptance is still pending: on 2026-11-04 Computer Use
 stopped because it could not reliably determine Chrome's current URL. See
 `editor/README.md` for startup, verification and known limitations. Complete
