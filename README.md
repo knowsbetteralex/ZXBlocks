@@ -15,16 +15,17 @@ py -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -e .
 python -m unittest discover -s tests -v
-python -m zxblocks compile examples/border_cycle/project.json -o build/border_cycle.asm
+python -m zxblocks compile examples/border_cycle/project.json -o build/examples/border_cycle/border_cycle.asm
 ~~~
 
 Для сборки BIN и TAP установите sjasmplus: https://github.com/z00m128/sjasmplus/releases
 
 ~~~powershell
-python -m zxblocks build examples/border_cycle/project.json -o build
+python -m zxblocks build examples/border_cycle/project.json
 ~~~
 
-Результаты: build/border_cycle.asm, build/border_cycle.bin, build/border_cycle.tap.
+Результаты: `build/cli/border_cycle/border_cycle.asm`, `.bin`, `.tap`.
+`-o` задаёт другую папку явно; сборки из VS Code находятся в `build/examples/`.
 
 **Внимание:** пока создаётся CODE-only TAP, без BASIC-загрузчика и автозапуска. На Spectrum 48K выполните CLEAR 32767, затем LOAD "" CODE, затем RANDOMIZE USR 32768. Полученная программа не возвращается в BASIC.
 
@@ -40,12 +41,12 @@ python -m zxblocks build examples/border_cycle/project.json -o build
 устанавливать точки останова даже при других общих настройках ассемблера.
 
 - **Ctrl+Shift+B** запускает `ZXBlocks: build`: JSON-пример `border_cycle`
-  компилируется в `build/border_cycle.asm`, `.bin` и `.tap`.
+  компилируется в `build/examples/border_cycle/border_cycle.asm`, `.bin` и `.tap`.
 - **F5**, конфигурация `ZXBlocks: border_cycle (DeZog 48K)`, сначала выполняет
-  сборку, затем создаёт `build/border_cycle.sna` и `.sld` и открывает встроенный
+  сборку, затем создаёт SNA и SLD в `build/examples/border_cycle/` и открывает встроенный
   симулятор DeZog в режиме Spectrum 48K. Выполнение остановлено на входе;
   повторное **F5** продолжает программу, **F10/F11** выполняют шаги.
-- Для точек останова откройте `build/border_cycle.asm`, например процедуру
+- Для точек останова откройте `build/examples/border_cycle/border_cycle.asm`, например процедуру
   `ZXB_ON_FRAME`. Сейчас отладка привязана к сгенерированному ASM, а не к JSON.
 - Если `emuz` доступен в PATH, задача **Tasks: Run Task → ZXBlocks: run EmuZWin**
   пересобирает пример и открывает SNA в EmuZWin. Это отдельный запуск эмулятора;
@@ -59,9 +60,9 @@ python -m zxblocks build examples/border_cycle/project.json -o build
 Эту же отладочную сборку можно выполнить из терминала в корне репозитория:
 
 ~~~powershell
-.venv\Scripts\python.exe -m zxblocks build examples/border_cycle/project.json -o build
-sjasmplus --fullpath=rel --sld=build/border_cycle.sld tools/debug_border_cycle.asm
-emuz build\border_cycle.sna
+.venv\Scripts\python.exe -m zxblocks build examples/border_cycle/project.json -o build/examples/border_cycle
+sjasmplus --fullpath=rel --sld=build/examples/border_cycle/border_cycle.sld tools/debug_border_cycle.asm
+emuz build\examples\border_cycle\border_cycle.sna
 ~~~
 
 ## Blockly-редактор
@@ -83,19 +84,27 @@ cd ..
 Сервер останавливается через Ctrl+C; другой порт задаётся `--port 8766`.
 Если порт занят, остановите уже запущенный редактор или выберите другой порт.
 
-Откройте свой JSON или пример, меняйте блоки и нажмите **▶ Запустить**.
-Текущий проект автоматически собирается в снимок SNA и открывается в EmuZWin.
-Нужны `sjasmplus` и `emuz` в PATH сервера редактора. Переносить JSON в папку
-примера, создавать ASM-обёртку и менять настройки VS Code для запуска не нужно.
+Сверху — название текущего проекта и три кнопки:
 
-**Собрать TAP/SNA** создаёт готовые файлы без запуска; ссылки **Скачать TAP**
-и **Скачать SNA** появляются над кодом. **Проверить ASM** на панели результата
-выполняет только компиляцию, без вызова ассемблера.
+- **Открыть** — список проектов и импорт JSON/рабочего места из файла.
+- **Сохранить** / Ctrl+S — сохранить проект на компьютере вместе с блоками и
+  масштабом. Есть автосохранение, в том числе незаконченных черновиков.
+- **▶ Запустить** / F5 — собрать текущую программу и открыть SNA в EmuZWin.
 
-Кнопка **Сохранить JSON** экспортирует текущий `zxblocks/v1` или `zxblocks/v2`,
-который можно передать `zxblocks compile/build/run`. Позиции блоков
-хранятся в отдельном файле рабочего места и в автосохранении браузера.
-Подробнее: [редактор и его ограничения](editor/README.md).
+В **Меню** находятся создание и копирование проекта, создание из примеров,
+экспорт, сборка TAP/SNA без запуска, просмотр ASM и показ всех блоков.
+Примеры открываются новыми проектами. При переключении работа сохраняется;
+при следующем входе открывается последний проект. Прежнее автосохранение
+браузера переносится в отдельный проект.
+
+Панель **Сборки** показывает только результаты текущего проекта, скачивание
+TAP/SNA и журнал. Повторный запуск неизменённой программы использует готовую
+проверенную сборку. Нужны `sjasmplus` и `emuz` в PATH сервера редактора.
+
+**Меню → Экспорт → Проект с блоками** создаёт переносимую копию всего рабочего
+места. **JSON для компилятора** экспортирует только `zxblocks/v1` или
+`zxblocks/v2` для `zxblocks compile/build/run` и требует исправить ошибки схемы.
+Подробнее: [редактор](editor/README.md), [проекты и структура файлов](docs/PROJECTS.md).
 
 Любой сохранённый проект можно также собрать и запустить одной командой:
 
@@ -104,22 +113,23 @@ cd ..
 ~~~
 
 Замените путь на свой JSON. Команда создаёт `project.asm`, `.bin`, `.tap`,
-`.sna`, `.sld` и копию JSON в `build/run/`, затем открывает SNA через `emuz`.
+`.sna`, `.sld` и копию JSON в `build/cli/keyboard_border/`, затем открывает SNA через `emuz`.
 `-o build/my_run` меняет папку результата; `--emulator` и `--assembler` задают
 исполняемые файлы для запуска из CLI. Исходный проект остаётся на месте.
-При запуске из веб-интерфейса каждый результат сохраняется отдельно в
-`build/editor/<id>/`; папки примеров не перезаписываются. TAP по-прежнему
+Проекты редактора хранятся в `projects/<id>/`, их пронумерованные сборки — в
+`build/projects/<id>/<номер>/`, отдельно исходники, готовые файлы и отладка.
+Папки примеров не перезаписываются. TAP по-прежнему
 CODE-only, а SNA сразу открывает программу с адреса 32768.
 
 ## Клавиатура и проверка логики (v2)
 
-В редакторе откройте **Бордюр с клавиатурой**. Он создаёт проект v2: пробел
+В редакторе выберите **Меню → Создать из примера → Бордюр с клавиатурой**. Он создаёт проект v2: пробел
 нажат — жёлтый бордюр, отпущен — синий. Блок **клавиша … нажата** возвращает
 0 или 1. Для своего проекта сначала явно выберите **v2 · клавиатура**.
 Обычные проекты v1 продолжают собираться без изменения результата.
 
 ~~~powershell
-.venv\Scripts\python.exe -m zxblocks build examples/keyboard_border/project.json -o build
+.venv\Scripts\python.exe -m zxblocks build examples/keyboard_border/project.json -o build/examples/keyboard_border
 .venv\Scripts\python.exe -m zxblocks simulate examples/keyboard_border/project.json --inputs examples/keyboard_border/inputs.json
 ~~~
 
@@ -132,8 +142,8 @@ CODE-only, а SNA сразу открывает программу с адрес
 снимок в `emuz`. Для ручной сборки снимка и запуска:
 
 ~~~powershell
-sjasmplus --fullpath=rel --sld=build/keyboard_border.sld tools/debug_keyboard_border.asm
-emuz build\keyboard_border.sna
+sjasmplus --fullpath=rel --sld=build/examples/keyboard_border/keyboard_border.sld tools/debug_keyboard_border.asm
+emuz build\examples\keyboard_border\keyboard_border.sna
 ~~~
 
 ## Уже работает
@@ -155,6 +165,8 @@ emuz build\keyboard_border.sna
 | --- | --- |
 | src/zxblocks/ | Python-компилятор, CLI, упаковка TAP |
 | examples/ | Проекты на JSON IR |
+| projects/ | Локальные пользовательские проекты редактора, вне Git |
+| build/ | Сборки по проектам, примеры, проверки и отладочные данные |
 | tests/ | Регрессионные тесты |
 | editor/ | Локальный Blockly-редактор и тесты переноса IR |
 | runtime/ | Будущие процедуры Z80 |

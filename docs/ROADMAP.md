@@ -30,6 +30,10 @@ SLD source mappings were verified. No timing or contention measurements yet.
 - [x] Convert the border example in both directions, including identical Python-generated ASM.
 - [x] Local stdlib Python editor host, pinned frontend build and CI checks.
 - [x] Build/run the current editor project directly; generic CLI run and TAP/SNA downloads.
+- [x] Project list, clear Open/Save/Run toolbar, grouped menu and safe project switching.
+- [x] Filesystem draft saving, separate recovery per project and explicit editor-container migration.
+- [x] Per-project numbered/classified builds, persistent history and verified build reuse.
+- [ ] Browser acceptance of project switching, draft restore, menu, downloads and run.
 - [ ] Interactive browser smoke test: import/edit/export, workspace restore, compile and error navigation.
 
 Acceptance: Blockly-authored border example matches hand-written IR behavior.
@@ -53,6 +57,21 @@ stopped because it could not reliably determine Chrome's current URL. See
 `editor/README.md` for startup, verification and known limitations. Complete
 that smoke test before marking M1 accepted. CLI/compiler M2 work can be tested
 independently while browser automation is unavailable; it does not close M1.
+
+Project-workspace iteration: menu/toolbar, multiple saved projects, editor/v2
+draft migration, revision conflicts and numbered classified builds are implemented
+in `feat/project-workspace`; see `docs/PROJECTS.md`. Existing build outputs were
+preserved in a legacy archive; example tasks/debug presets now use
+`build/examples/`. Interactive review of this iteration remains unchecked:
+Computer Use reported an unavailable native pipe and browser access host.
+Verification on 2026-11-04: 61 Python and 21 real-Blockly/persistence tests passed;
+the frontend bundle built. Both relocated example/DeZog snapshots assembled
+without errors or warnings. An isolated project-store HTTP smoke test imported
+a real Blockly document for the user's program, downloaded all six artifacts,
+checked its 73-byte BIN and 48K SNA entry/stack, reused its build for EmuZWin
+launch and again after restarting the API host. EmuZWin reported responsive in
+Spectrum 48K mode; input source files were unchanged. This is backend/process
+evidence, not a visual or browser-click acceptance test.
 
 ## M2 — timing and events
 

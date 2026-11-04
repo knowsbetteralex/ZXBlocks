@@ -3,5 +3,5 @@
 ; Requires the emulator's 48K ROM for IM 1 interrupts; includes no ROM.
         DEVICE ZXSPECTRUM48, 32767
         SLDOPT COMMENT WPMEM, LOGPOINT, ASSERTION
-        INCLUDE "../build/keyboard_border.asm"
-        SAVESNA "build/keyboard_border.sna", ZXB_START
+        INCLUDE "../build/examples/keyboard_border/keyboard_border.asm"
+        SAVESNA "build/examples/keyboard_border/keyboard_border.sna", ZXB_START

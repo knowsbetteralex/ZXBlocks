@@ -53,7 +53,7 @@ class BuildFailureTests(unittest.TestCase):
     def test_missing_outputs_fail_even_when_assembler_returns_success(self):
         with tempfile.TemporaryDirectory() as directory, \
              patch("zxblocks.runner.require_tool", return_value="sjasmplus"), \
-             patch("zxblocks.runner.subprocess.run", return_value=Mock(returncode=0)):
+             patch("zxblocks.runner.subprocess.run", return_value=Mock(returncode=0, stdout="", stderr="")):
             with self.assertRaisesRegex(BuildError, "BIN/SNA/SLD"):
                 build_project(PROJECT, Path(directory))
 
@@ -79,8 +79,23 @@ class BuildFailureTests(unittest.TestCase):
                  contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(main(["run", str(source)]), 0)
             self.assertEqual(build.call_args.args[0], project)
+            self.assertEqual(build.call_args.args[1], Path("build/cli") / source.parent.name)
             launch.assert_called_once()
             self.assertEqual(json.loads(source.read_text(encoding="utf-8")), project)
+
+    def test_build_default_classifies_cli_outputs_by_source_directory(self):
+        with tempfile.TemporaryDirectory() as directory, contextlib.chdir(directory):
+            source = Path("my_game/project.json")
+            source.parent.mkdir()
+            source.write_text(json.dumps(PROJECT), encoding="utf-8")
+            def assemble(argv, **kwargs):
+                Path(argv[1].removeprefix("--raw=")).write_bytes(b"\x00")
+            with patch("zxblocks.cli.subprocess.run", side_effect=assemble), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(["build", str(source)]), 0)
+            output = Path("build/cli/my_game")
+            self.assertTrue((output / "my_game.asm").is_file())
+            self.assertTrue((output / "my_game.tap").is_file())
+            self.assertFalse(Path("build/my_game.asm").exists())
 
 
 @unittest.skipUnless(shutil.which("sjasmplus"), "Requires sjasmplus for real snapshot build tests")

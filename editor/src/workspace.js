@@ -94,7 +94,7 @@ export function exportProject(workspace, metadata) {
     if (!block.isEnabled()) fail('Отключённые блоки не поддерживаются', block);
     if (!visited.has(block.id)) fail('Подключите блок к событию', block);
   }
-  const variables = workspace.getVariableMap().getAllVariables().map(variable => ({name: variable.getName(), initial: metadata.initials[variable.getId()] ?? 0}));
+  const variables = workspace.getVariableMap().getAllVariables().map(variable => ({name: variable.getName(), initial: Object.hasOwn(metadata.initials, variable.getId()) ? metadata.initials[variable.getId()] : 0}));
   const project = {format: metadata.format ?? 'zxblocks/v1', name: metadata.name, variables, events};
   try { validateProject(project); }
   catch (error) { error.blockId ??= blockForPath(sourceMap, error.path); throw error; }
@@ -127,4 +127,55 @@ export function blockForPath(sourceMap, path) {
     path = parent;
   }
   return null;
+}
+
+// v2 is an editor document, not a compiler IR version. It also stores drafts.
+export function saveDraft(workspace, metadata) {
+  const document = {format: 'zxblocks/editor/v2', metadata: structuredClone(metadata),
+    workspace: Blockly.serialization.workspaces.save(workspace),
+    view: {scale: workspace.scale ?? 1, scrollX: workspace.scrollX ?? 0, scrollY: workspace.scrollY ?? 0}};
+  try { document.project = exportProject(workspace, metadata).project; }
+  catch { document.project = null; }
+  return document;
+}
+
+export function loadDraft(workspace, document) {
+  if (document?.format !== 'zxblocks/editor/v2') throw new EditorError('Неизвестный формат документа');
+  if (Object.keys(document).some(key => !['format', 'metadata', 'workspace', 'view', 'project'].includes(key))) throw new EditorError('Неизвестные поля документа');
+  const metadata = document.metadata;
+  if (!metadata || !['zxblocks/v1', 'zxblocks/v2'].includes(metadata.format) || typeof metadata.name !== 'string' ||
+      metadata.name.length > 120 || Object.keys(metadata).some(key => !['name', 'format', 'initials'].includes(key)) ||
+      !metadata.initials || typeof metadata.initials !== 'object' || Array.isArray(metadata.initials)) {
+    throw new EditorError('Повреждены свойства проекта');
+  }
+  if (!document.workspace || typeof document.workspace !== 'object' || Array.isArray(document.workspace)) throw new EditorError('Повреждено рабочее место');
+  const view = document.view ?? {};
+  if (Object.entries(view).some(([key, value]) => !['scale', 'scrollX', 'scrollY'].includes(key) || !Number.isFinite(value)) ||
+      (view.scale !== undefined && (view.scale < .35 || view.scale > 1.5))) throw new EditorError('Повреждены настройки масштаба');
+  // Check every block, including detached draft blocks, before replacing the UI.
+  const known = new Set(['zxb_event', 'zxb_set', 'zxb_change', 'zxb_border', 'zxb_if', 'zxb_byte', 'zxb_var', 'zxb_key']);
+  if (Object.keys(document.workspace).some(key => !['variables', 'blocks'].includes(key))) throw new EditorError('Неизвестные данные рабочего места');
+  let count = 0;
+  const pending = [document.workspace];
+  while (pending.length) {
+    if (++count > 100000) throw new EditorError('Слишком большое рабочее место');
+    const value = pending.pop();
+    if (!value || typeof value !== 'object') continue;
+    if (typeof value.type === 'string' && !known.has(value.type) && value.type !== 'u8') throw new EditorError(`Неизвестный блок: ${value.type}`);
+    pending.push(...Object.values(value));
+  }
+  const scratch = new Blockly.Workspace();
+  try {
+    Blockly.serialization.workspaces.load(document.workspace, scratch);
+    if (document.project != null) {
+      validateProject(document.project);
+      if (JSON.stringify(exportProject(scratch, metadata).project) !== JSON.stringify(document.project)) throw new EditorError('Блоки не совпадают с JSON программы');
+    }
+  } finally { scratch.dispose(); }
+  Blockly.serialization.workspaces.load(document.workspace, workspace);
+  if (workspace.rendered) {
+    workspace.setScale(view.scale ?? .8);
+    workspace.scroll(view.scrollX ?? 0, view.scrollY ?? 0);
+  }
+  return structuredClone(metadata);
 }

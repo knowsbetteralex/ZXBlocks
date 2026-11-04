@@ -15,10 +15,10 @@
             },
             "sjasmplus": [
                 {
-                    "path": "build/border_cycle.sld"
+                    "path": "build/examples/border_cycle/border_cycle.sld"
                 }
             ],
-            "load": "build/border_cycle.sna",
+            "load": "build/examples/border_cycle/border_cycle.sna",
             "startAutomatically": false,
             "topOfStack": "0x7FFC",
             "rootFolder": "${workspaceFolder}",
@@ -37,8 +37,8 @@
                 "zxKeyboard": "spectrum",
                 "visualMemory": true
             },
-            "sjasmplus": [{"path": "build/keyboard_border.sld"}],
-            "load": "build/keyboard_border.sna",
+            "sjasmplus": [{"path": "build/examples/keyboard_border/keyboard_border.sld"}],
+            "load": "build/examples/keyboard_border/keyboard_border.sna",
             "startAutomatically": false,
             "topOfStack": "0x7FFC",
             "rootFolder": "${workspaceFolder}",

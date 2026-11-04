@@ -21,6 +21,8 @@ dist/
 # Editor
 node_modules/
 editor/dist/
+# Local user projects; examples remain versioned templates.
+/projects/
 
 # OS / IDE
 .DS_Store

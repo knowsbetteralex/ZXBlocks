@@ -33,14 +33,21 @@ class BuildError(ValueError):
 class BuildResult:
     directory: Path
     code_size: int
+    organized: bool = False
+
+    def file(self, name: str) -> Path:
+        if name not in ARTIFACT_NAMES:
+            raise ValueError("Unknown build artifact")
+        folder = "source" if name.endswith(".json") else "artifacts" if name.endswith((".bin", ".tap", ".sna")) else "debug"
+        return self.directory / folder / name if self.organized else self.directory / name
 
     @property
     def snapshot(self) -> Path:
-        return self.directory / "project.sna"
+        return self.file("project.sna")
 
     @property
     def files(self) -> tuple[Path, ...]:
-        return tuple(self.directory / name for name in ARTIFACT_NAMES)
+        return tuple(self.file(name) for name in ARTIFACT_NAMES)
 
 
 def require_tool(command: str) -> str:
@@ -70,6 +77,7 @@ def build_project(project: Any, directory: Path, assembler: str = "sjasmplus") -
         raise BuildError("sjasmplus did not finish within 30 seconds") from exc
     except OSError as exc:
         raise BuildError(f"Could not start sjasmplus: {exc}") from exc
+    (directory / "assembler.log").write_text(result.stdout + result.stderr, encoding="utf-8")
     if result.returncode:
         detail = (result.stderr or result.stdout).strip()[-4000:]
         raise BuildError(f"sjasmplus failed: {detail}")

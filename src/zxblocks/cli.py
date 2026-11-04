@@ -20,11 +20,11 @@ def main(argv: list[str] | None = None) -> int:
     compile_cmd.add_argument("-o", "--output", type=Path, required=True)
     build_cmd = commands.add_parser("build", help="Build ASM, binary and CODE TAP")
     build_cmd.add_argument("project", type=Path)
-    build_cmd.add_argument("-o", "--output-dir", type=Path, default=Path("build"))
+    build_cmd.add_argument("-o", "--output-dir", type=Path, help="Output directory (default: build/cli/<source-folder>)")
     build_cmd.add_argument("--assembler", default="sjasmplus")
     run_cmd = commands.add_parser("run", help="Build any project as a 48K snapshot and open EmuZWin")
     run_cmd.add_argument("project", type=Path)
-    run_cmd.add_argument("-o", "--output-dir", type=Path, default=Path("build/run"))
+    run_cmd.add_argument("-o", "--output-dir", type=Path, help="Output directory (default: build/cli/<source-folder>)")
     run_cmd.add_argument("--assembler", default="sjasmplus")
     run_cmd.add_argument("--emulator", default="emuz")
     editor_cmd = commands.add_parser("editor", help="Serve the local Blockly editor")
@@ -47,6 +47,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         with args.project.open("r", encoding="utf-8") as source:
             project = json.load(source)
+        stem = args.project.parent.name or "game"
+        if args.command in ("build", "run") and args.output_dir is None:
+            args.output_dir = Path("build/cli") / stem
         if args.command == "run":
             from .runner import build_project, launch_emulator, require_tool
             require_tool(args.emulator)
@@ -82,7 +85,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Generated: {args.output}")
         else:
             args.output_dir.mkdir(parents=True, exist_ok=True)
-            stem = args.project.parent.name or "game"
             asm_path = args.output_dir / f"{stem}.asm"
             bin_path = args.output_dir / f"{stem}.bin"
             tap_path = args.output_dir / f"{stem}.tap"

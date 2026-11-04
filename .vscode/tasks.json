@@ -14,7 +14,7 @@
                 "build",
                 "examples/border_cycle/project.json",
                 "-o",
-                "build"
+                "build/examples/border_cycle"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -32,7 +32,7 @@
             "command": "sjasmplus",
             "args": [
                 "--fullpath=rel",
-                "--sld=build/border_cycle.sld",
+                "--sld=build/examples/border_cycle/border_cycle.sld",
                 "tools/debug_border_cycle.asm"
             ],
             "options": {
@@ -64,7 +64,7 @@
             "type": "process",
             "command": "${workspaceFolder}/.venv/bin/python",
             "windows": {"command": "${workspaceFolder}/.venv/Scripts/python.exe"},
-            "args": ["-m", "zxblocks", "build", "examples/keyboard_border/project.json", "-o", "build"],
+            "args": ["-m", "zxblocks", "build", "examples/keyboard_border/project.json", "-o", "build/examples/keyboard_border"],
             "options": {"cwd": "${workspaceFolder}"},
             "group": "build",
             "problemMatcher": []
@@ -74,7 +74,7 @@
             "dependsOn": "ZXBlocks: build keyboard example",
             "type": "process",
             "command": "sjasmplus",
-            "args": ["--fullpath=rel", "--sld=build/keyboard_border.sld", "tools/debug_keyboard_border.asm"],
+            "args": ["--fullpath=rel", "--sld=build/examples/keyboard_border/keyboard_border.sld", "tools/debug_keyboard_border.asm"],
             "options": {"cwd": "${workspaceFolder}"},
             "problemMatcher": []
         },
@@ -83,7 +83,7 @@
             "dependsOn": "ZXBlocks: keyboard debug snapshot",
             "type": "process",
             "command": "emuz",
-            "args": ["${workspaceFolder}\\build\\keyboard_border.sna"],
+            "args": ["${workspaceFolder}\\build\\examples\\keyboard_border\\keyboard_border.sna"],
             "options": {"cwd": "${workspaceFolder}"},
             "problemMatcher": []
         },
@@ -93,7 +93,7 @@
             "type": "process",
             "command": "emuz",
             "args": [
-                "${workspaceFolder}\\build\\border_cycle.sna"
+                "${workspaceFolder}\\build\\examples\\border_cycle\\border_cycle.sna"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

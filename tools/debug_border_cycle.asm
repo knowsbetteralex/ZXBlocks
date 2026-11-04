@@ -5,5 +5,5 @@
 ; No instructions are added to the program and no ROM is included in the SNA.
         DEVICE ZXSPECTRUM48, 32767
         SLDOPT COMMENT WPMEM, LOGPOINT, ASSERTION
-        INCLUDE "../build/border_cycle.asm"
-        SAVESNA "build/border_cycle.sna", ZXB_START
+        INCLUDE "../build/examples/border_cycle/border_cycle.asm"
+        SAVESNA "build/examples/border_cycle/border_cycle.sna", ZXB_START

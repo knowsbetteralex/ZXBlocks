@@ -50,18 +50,20 @@ starts the locally configured `emuz` executable with the native snapshot path.
 `zxblocks run <project.json>` exposes the same runner without the browser.
 No IR version, runtime instruction or ABI change is involved in packaging.
 
-Each web build writes to a fresh server-owned `build/editor/<id>/` directory,
-not a client-supplied path. Completed builds expose only their six known
-artifact filenames through `/api/artifacts/<id>/<filename>`. Requests use the
-existing same-origin check; clients cannot supply executables or shell commands.
-No shell is used. Wrapper directives and filenames are constants, so project
-titles never become assembler text. Failed builds never launch a stale file.
+The editor now manages named projects with stable IDs in `projects/<id>/`.
+Its `zxblocks/editor/v2` container separates Blockly drafts/viewport from an
+optional valid compiler IR. Old `zxblocks/editor/v1` files remain importable;
+the old browser autosave is migrated explicitly without changing compiler IR.
+Revision-checked atomic document saves prevent one tab overwriting another.
 
-Workspace files use a separate `zxblocks/editor/v1` envelope with `project`,
-Blockly `workspace` state and initial values keyed by editor variable IDs.
-Workspace restore validates the semantic snapshot before replacing the open
-project. Normal JSON exports contain only the selected `zxblocks/v1` or
-`zxblocks/v2` project data.
+Project-scoped build/run requests write immutable numbered jobs under
+`build/projects/<id>/`, classified as source, artifacts and debug data. Persistent
+manifests support history and verified reuse after a server restart. Only six
+known artifacts and logs are exposed, never client-supplied paths or commands.
+No shell is used; wrapper directives/filenames remain constants. Failed current
+programs never launch stale output. Raw-IR endpoints remain compatible.
+See [projects, document migration and build storage](PROJECTS.md) for the schema,
+UI workflow, cache inputs, concurrency limits and directory layout.
 
 ## Execution
 
