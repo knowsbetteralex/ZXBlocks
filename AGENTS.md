@@ -61,8 +61,11 @@ When changing Z80 behavior, assemble with sjasmplus and test in a 48K emulator i
 
 1. Verify bootstrap assembly and emulator behavior.
 2. Add Blockly MVP with IR export/import tests.
-3. Extend scheduling with non-blocking timers, keyboard and user procedures.
-4. Design a documented Z80 runtime ABI and integrate a moving sprite.
-5. Measure RAM and worst-case T-states with emulator instrumentation.
+3. Complete versioned u8 arithmetic, expression comparisons, bitwise operations
+   and logical conditions before timers/waits (docs/ARITHMETIC_PLAN.md).
+4. Extend scheduling with non-blocking timers/waits and user procedures,
+   preserving keyboard/frame updates.
+5. Design a documented Z80 runtime ABI and integrate a moving sprite.
+6. Measure RAM and worst-case T-states with emulator instrumentation.
 
 Prefer one complete vertical slice over a broad unfinished framework.

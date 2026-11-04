@@ -57,3 +57,8 @@ as `events.frame[1].then[0]`. These are host-side diagnostic metadata, not an IR
 schema change or runtime ABI change.
 
 Versioned evolution can add word/signed types, non-blocking timers, procedures, object properties, sprite asset references, keyboard conditions, rich expressions and source maps. Create migrations and new tests; do not break existing projects silently.
+
+The next planned extension is u8 arithmetic and expression comparisons,
+before timers/waits; see [the implementation plan](ARITHMETIC_PLAN.md).
+Arithmetic nodes are not currently part of v1 or v2. Their versioned grammar,
+migration and boundary semantics must be specified before implementation.

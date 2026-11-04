@@ -69,6 +69,15 @@ programs never launch stale output. Raw-IR endpoints remain compatible.
 See [projects, document migration and build storage](PROJECTS.md) for the schema,
 UI workflow, cache inputs, concurrency limits and directory layout.
 
+## Next: arithmetic before scheduling
+
+The next M2 stage is versioned u8 arithmetic and comparisons of expressions,
+followed by the remaining arithmetic, bitwise and logical operations. Complete
+these before timers/waits and procedures. The [arithmetic plan](ARITHMETIC_PLAN.md)
+defines the ordered slices, semantic decisions and acceptance checks. It does
+not change the currently supported v1/v2 grammar or runtime ABI. Each operator
+slice must work through the editor, CLI, reference model and native compilation.
+
 ## Execution
 
 Current generated game calls the start event, then repeats HALT -> frame event. It expects a valid BASIC stack and 48K IM1 ROM interrupts.
@@ -90,4 +99,6 @@ IR format is versioned; design a migration strategy before adding breaking chang
 
 ## Still planned
 
-Animation tool, object system, timer/procedure IR, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer and a complete emulator.
+General arithmetic/bitwise expressions, animation tool, object system,
+timer/procedure IR, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer
+and a complete emulator.

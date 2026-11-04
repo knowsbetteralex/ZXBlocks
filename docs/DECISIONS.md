@@ -35,8 +35,8 @@ Add key expressions only in `zxblocks/v2`, keeping v1 output unchanged and
 providing an explicit upgrade command. Sample only referenced physical rows
 before start and once per frame, then reuse samples in expressions. This gives
 consistent per-row state within an update without busy waiting or a block
-interpreter. Start with keyboard input and an independent reference model;
-design non-blocking timers and procedures as the next focused slice.
+interpreter. Start with keyboard input and an independent reference model.
+Follow-up sequencing is now set by ADR-010 and the roadmap.
 
 ## ADR-009 — build and run the current project (2026-11-04)
 
@@ -46,3 +46,16 @@ example folder or requiring per-project assembler wrappers. Keep immutable
 per-request web build directories, fixed artifact names, same-origin requests
 and server-selected executables. This reduces manual steps while preserving
 the editor/compiler IR boundary and all existing v1/v2 generated instructions.
+
+## ADR-010 — arithmetic before timers and delays (2026-11-04)
+
+At the user's request, prioritize useful u8 expressions before scheduling:
+nested addition/subtraction and expression comparisons first, then the remaining
+arithmetic, bitwise operations and logical conditions. Complete the expression
+stage before periodic events, non-blocking waits and user procedures. Retain
+u8 wrap semantics and v1/v2 compatibility; document the new IR version,
+migration and edge cases before implementing operators. The editor continues
+to select required capabilities automatically. Division-by-zero behavior,
+shift rules and condition evaluation details remain specification work;
+see [the arithmetic implementation plan](ARITHMETIC_PLAN.md). This decision
+changes work priority, not the current supported grammar or runtime ABI.

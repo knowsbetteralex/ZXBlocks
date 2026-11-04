@@ -85,20 +85,46 @@ the editor and remains reachable at the page bottom, without horizontal page
 overflow or JavaScript errors. A full interactive menu/import/run acceptance
 test remains open; Computer Use's native/browser hosts were unavailable.
 
-## M2 — timing and events
+## M2 — expressions, input and scheduling
+
+Priority agreed on 2026-11-04: complete arithmetic and expression operations
+before timers/delays. The detailed sequence, open semantic decisions and
+acceptance checks are in [the arithmetic plan](ARITHMETIC_PLAN.md).
+
+### M2.1 — arithmetic and expressions (next)
+
+- [ ] Specify/version the expression IR extension and migrations, preserving v1/v2.
+- [ ] Nested addition/subtraction and comparisons between expressions (=, !=, <, <=, >, >=).
+- [ ] Multiplication, unsigned integer division and remainder, with specified zero-divisor behavior.
+- [ ] Bitwise AND/OR/XOR/NOT, logical shifts and documented shift-count rules.
+- [ ] Logical condition composition, distinct from bitwise byte operations.
+- [ ] Blockly blocks, automatic capability selection, IR round trips and incomplete-expression draft restore.
+- [ ] Reference-model, compatibility and assembled-code tests; runnable arithmetic example.
+
+Acceptance: the operations work from blocks through compiled execution, with
+matching u8 semantics and documented error/boundary behavior. Complete this
+stage before starting timers or waits; implement one complete slice at a time.
+
+### M2.2 — keyboard and reference simulation
 
 - [x] Versioned key input expressions, per-frame row samples and explicit v1→v2 migration.
 - [x] Keyboard-border example, Blockly round trips and assembled Z80 port tests.
-- [ ] Non-blocking timers and cooperative scheduling.
-- [ ] Named procedures and object state.
 - [x] Python reference simulation for v1/v2 actions and keyboard input, independent of video.
 - [ ] Interactive 48K emulator keyboard test and browser keyboard-block smoke test.
 
-Acceptance: deterministic input-driven movement can be unit-tested.
+### M2.3 — timers, delays and procedures (after arithmetic)
+
+- [ ] Periodic events such as "every N frames" without blocking keyboard/frame updates.
+- [ ] Non-blocking waits and cooperative scheduling.
+- [ ] Named procedures and object state.
+
+M2 acceptance: deterministic expression/input/timer behavior can be tested
+against compiled execution; waiting scripts do not stop the other updates.
 
 Keyboard slice implemented in `feat/keyboard-v2`; see `docs/BLOCK_IR_V2.md`
-and `docs/KEYBOARD_RUNTIME.md`. Timer/procedure/object semantics are not yet
-implemented. Interactive Chrome automation was blocked again on 2026-11-04
+and `docs/KEYBOARD_RUNTIME.md`. General arithmetic and bitwise nodes,
+timers/procedures/object semantics are not yet implemented. Interactive Chrome
+automation was blocked again on 2026-11-04
 because Computer Use could not reliably determine its current URL. No new
 browser or full 48K keyboard-emulator run is claimed; the assembled-code
 tests use an owned IRQ stub and port fixture, not the Spectrum ROM or ULA.
@@ -132,11 +158,14 @@ active port and accidentally serve an older compiler; covered by a regression te
 - [ ] Example gallery, source maps, per-block profiling.
 - [ ] Windows packaging and reproducible release builds.
 
-## Suggested first Codex tasks
+## Next implementation tasks
 
-1. Bootstrap verified; repeat the assembler/emulator smoke test when Z80 behavior changes.
-2. Create Blockly MVP with exact zxblocks/v1 import/export and tests.
-3. Add keyboard and frame timer support with IR specification and tests first.
-4. Implement runtime ABI documentation and initial sprite vertical slice.
+1. Implement nested `+`/`-` and comparisons of expressions as a complete versioned IR/compiler/simulator/editor slice.
+2. Complete multiplication, division/remainder, bitwise operations and logical conditions, including their boundary rules and arithmetic examples.
+3. Add periodic events, then non-blocking waits and user procedures after the arithmetic acceptance checks pass.
+4. Implement runtime ABI documentation and the first moving sprite.
+
+Keep the pending editor/keyboard interactive acceptance checks visible and
+repeat assembler/emulator checks when generated Z80 behavior changes.
 
 One small PR per task. Do not jump to M4 without working M1/M2 tests.
