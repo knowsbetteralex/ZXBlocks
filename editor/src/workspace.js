@@ -1,5 +1,5 @@
 import {Blockly} from './blocks.js';
-import {EditorError, validateProject} from './ir.js';
+import {EditorError, PROJECT_FORMATS, validateProject} from './ir.js';
 
 function variableState(name, variables) {
   const variable = variables.find(v => v.name.toUpperCase() === name.toUpperCase());
@@ -9,10 +9,13 @@ function variableState(name, variables) {
 export function importProject(workspace, input) {
   const project = validateProject(input); // Validate before touching the open workspace.
   const variables = (project.variables ?? []).map((v, index) => ({name: v.name, type: 'u8', id: `zxb_var_${index}`}));
-  const expression = value => typeof value === 'number'
-    ? {type: 'zxb_byte', fields: {NUM: value}}
-    : Object.hasOwn(value, 'key') ? {type: 'zxb_key', fields: {KEY: value.key}}
-    : {type: 'zxb_var', fields: {VAR: variableState(value.var, variables)}};
+  const expression = value => {
+    if (typeof value === 'number') return {type: 'zxb_byte', fields: {NUM: value}};
+    if (Object.hasOwn(value, 'key')) return {type: 'zxb_key', fields: {KEY: value.key}};
+    if (Object.hasOwn(value, 'op')) return {type: 'zxb_arithmetic', fields: {OP: value.op},
+      inputs: {LEFT: {block: expression(value.left)}, RIGHT: {block: expression(value.right)}}};
+    return {type: 'zxb_var', fields: {VAR: variableState(value.var, variables)}};
+  };
   const chain = actions => {
     let first = null;
     let last = null;
@@ -22,7 +25,10 @@ export function importProject(workspace, input) {
       if (action.op === 'change') block = {type: 'zxb_change', fields: {VAR: variableState(action.var, variables), DELTA: action.by}};
       if (action.op === 'call') block = {type: 'zxb_border', inputs: {VALUE: {block: expression(action.arg)}}};
       if (action.op === 'if') {
-        block = {type: 'zxb_if', fields: {VAR: variableState(action.condition.var, variables), CMP: action.condition.op, LIMIT: action.condition.value}, inputs: {}};
+        const condition = action.condition;
+        block = Object.hasOwn(condition, 'left') ? {type: 'zxb_compare_if', fields: {CMP: condition.op},
+          inputs: {LEFT: {block: expression(condition.left)}, RIGHT: {block: expression(condition.right)}}} :
+          {type: 'zxb_if', fields: {VAR: variableState(condition.var, variables), CMP: condition.op, LIMIT: condition.value}, inputs: {}};
         if (action.then?.length) block.inputs.THEN = {block: chain(action.then)};
         if (action.else?.length) block.inputs.ELSE = {block: chain(action.else)};
       }
@@ -52,14 +58,23 @@ export function exportProject(workspace, metadata) {
     if (!variable) fail('Выберите переменную', block);
     return variable.getName();
   };
-  const expression = (block, path, parent) => {
+  let expressionCount = 0;
+  const expression = (block, path, parent, depth = 0) => {
     if (!block) fail('Подключите число или переменную', parent);
+    if (depth > 16) fail('Максимальная вложенность выражения — 16', block);
+    if (++expressionCount > 4096) fail('Максимум 4096 узлов выражений', block);
     visited.add(block.id); sourceMap[path] = block.id;
     if (block.type === 'zxb_byte') return Number(block.getFieldValue('NUM'));
     if (block.type === 'zxb_var') return {var: variableName(block)};
     if (block.type === 'zxb_key') {
       capabilities.add('keyboard');
       return {key: block.getFieldValue('KEY')};
+    }
+    if (block.type === 'zxb_arithmetic') {
+      capabilities.add('expressions');
+      return {op: block.getFieldValue('OP'),
+        left: expression(block.getInputTargetBlock('LEFT'), `${path}.left`, block, depth + 1),
+        right: expression(block.getInputTargetBlock('RIGHT'), `${path}.right`, block, depth + 1)};
     }
     fail('Ожидается байтовое значение', block);
   };
@@ -76,8 +91,15 @@ export function exportProject(workspace, metadata) {
       if (block.type === 'zxb_set') action = {op: 'set', var: variableName(block), value: expression(block.getInputTargetBlock('VALUE'), `${at}.value`, block)};
       else if (block.type === 'zxb_change') action = {op: 'change', var: variableName(block), by: Number(block.getFieldValue('DELTA'))};
       else if (block.type === 'zxb_border') action = {op: 'call', name: 'set_border', arg: expression(block.getInputTargetBlock('VALUE'), `${at}.arg`, block)};
-      else if (block.type === 'zxb_if') {
-        action = {op: 'if', condition: {var: variableName(block), op: block.getFieldValue('CMP'), value: Number(block.getFieldValue('LIMIT'))}, then: chain(block.getInputTargetBlock('THEN'), `${at}.then`, depth + 1)};
+      else if (block.type === 'zxb_if' || block.type === 'zxb_compare_if') {
+        let condition;
+        if (block.type === 'zxb_compare_if') {
+          capabilities.add('expressions');
+          sourceMap[`${at}.condition`] = block.id;
+          condition = {left: expression(block.getInputTargetBlock('LEFT'), `${at}.condition.left`, block),
+            op: block.getFieldValue('CMP'), right: expression(block.getInputTargetBlock('RIGHT'), `${at}.condition.right`, block)};
+        } else condition = {var: variableName(block), op: block.getFieldValue('CMP'), value: Number(block.getFieldValue('LIMIT'))};
+        action = {op: 'if', condition, then: chain(block.getInputTargetBlock('THEN'), `${at}.then`, depth + 1)};
         const otherwise = chain(block.getInputTargetBlock('ELSE'), `${at}.else`, depth + 1);
         if (otherwise.length) action.else = otherwise;
       } else fail('Этот блок не поддерживается', block);
@@ -101,6 +123,7 @@ export function exportProject(workspace, metadata) {
   const variables = workspace.getVariableMap().getAllVariables().map(variable => ({name: variable.getName(), initial: Object.hasOwn(metadata.initials, variable.getId()) ? metadata.initials[variable.getId()] : 0}));
   const project = {format: metadata.format ?? 'zxblocks/v1', name: metadata.name, variables, events};
   if (project.format === 'zxblocks/v1' && capabilities.has('keyboard')) project.format = 'zxblocks/v2';
+  if (PROJECT_FORMATS.includes(project.format) && capabilities.has('expressions')) project.format = 'zxblocks/v3';
   try { validateProject(project); }
   catch (error) { error.blockId ??= blockForPath(sourceMap, error.path); throw error; }
   return {project, sourceMap, capabilities: [...capabilities]};
@@ -151,7 +174,7 @@ export function loadDraft(workspace, document) {
   if (document?.format !== 'zxblocks/editor/v2') throw new EditorError('Неизвестный формат документа');
   if (Object.keys(document).some(key => !['format', 'metadata', 'workspace', 'view', 'project'].includes(key))) throw new EditorError('Неизвестные поля документа');
   const metadata = document.metadata;
-  if (!metadata || !['zxblocks/v1', 'zxblocks/v2'].includes(metadata.format) || typeof metadata.name !== 'string' ||
+  if (!metadata || !PROJECT_FORMATS.includes(metadata.format) || typeof metadata.name !== 'string' ||
       metadata.name.length > 120 || Object.keys(metadata).some(key => !['name', 'format', 'initials'].includes(key)) ||
       !metadata.initials || typeof metadata.initials !== 'object' || Array.isArray(metadata.initials)) {
     throw new EditorError('Повреждены свойства проекта');
@@ -161,7 +184,7 @@ export function loadDraft(workspace, document) {
   if (Object.entries(view).some(([key, value]) => !['scale', 'scrollX', 'scrollY'].includes(key) || !Number.isFinite(value)) ||
       (view.scale !== undefined && (view.scale < .35 || view.scale > 1.5))) throw new EditorError('Повреждены настройки масштаба');
   // Check every block, including detached draft blocks, before replacing the UI.
-  const known = new Set(['zxb_event', 'zxb_set', 'zxb_change', 'zxb_border', 'zxb_if', 'zxb_byte', 'zxb_var', 'zxb_key']);
+  const known = new Set(['zxb_event', 'zxb_set', 'zxb_change', 'zxb_border', 'zxb_if', 'zxb_byte', 'zxb_var', 'zxb_key', 'zxb_arithmetic', 'zxb_compare_if']);
   if (Object.keys(document.workspace).some(key => !['variables', 'blocks'].includes(key))) throw new EditorError('Неизвестные данные рабочего места');
   let count = 0;
   const pending = [document.workspace];

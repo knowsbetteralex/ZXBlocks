@@ -100,8 +100,8 @@ class BuildFailureTests(unittest.TestCase):
 
 @unittest.skipUnless(shutil.which("sjasmplus"), "Requires sjasmplus for real snapshot build tests")
 class NativeBuildTests(unittest.TestCase):
-    def test_generic_v1_v2_builds_preserve_code_and_create_valid_snapshots(self):
-        for example in ("border_cycle", "keyboard_border"):
+    def test_generic_v1_v2_v3_builds_preserve_code_and_create_valid_snapshots(self):
+        for example in ("border_cycle", "keyboard_border", "arithmetic_border"):
             with self.subTest(example=example), tempfile.TemporaryDirectory() as directory:
                 project = json.loads((ROOT / f"examples/{example}/project.json").read_text(encoding="utf-8"))
                 output = Path(directory) / "output with spaces"

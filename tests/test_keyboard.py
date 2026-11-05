@@ -47,7 +47,7 @@ class KeyboardCompilerTests(unittest.TestCase):
         for key in ("space", "BREAK", "SPACE: JP 0", [], {}, None, 1):
             with self.subTest(key=key), self.assertRaises(CompileError):
                 compile_project(project_for(key))
-        for version in ("zxblocks/v0", "zxblocks/v3"):
+        for version in ("zxblocks/v0", "zxblocks/v99"):
             with self.assertRaises(CompileError):
                 compile_project(project_for(format=version))
         project = project_for()

@@ -86,6 +86,17 @@ class EditorServerTests(unittest.TestCase):
         self.assertEqual(body["asm"], compile_project(project))
         self.assertIn("IN A,(C)", body["asm"])
 
+    def test_v3_arithmetic_compiles_and_reports_nested_expression_errors(self):
+        project = json.loads((EXAMPLE.parent.parent / "arithmetic_border/project.json").read_text(encoding="utf-8"))
+        status, body = self.request(json.dumps(project).encode())
+        self.assertEqual(status, 200)
+        self.assertEqual(body["asm"], compile_project(project))
+        self.assertIn("ADD A,C", body["asm"])
+        project["events"]["frame"][1]["condition"]["left"]["right"] = {"var": "missing"}
+        status, body = self.request(json.dumps(project).encode())
+        self.assertEqual(status, 400)
+        self.assertEqual(body["error"]["path"], "events.frame[1].condition.left.right")
+
     def test_rejects_bad_json_and_excessive_body(self):
         self.assertEqual(self.request(b"{")[0], 400)
         self.assertEqual(self.request(b" " * (MAX_REQUEST_BYTES + 1))[0], 413)

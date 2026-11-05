@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .compiler import compile_project
+from .formats import SUPPORTED_FORMATS
 
 PROJECT_ID = r"[0-9a-f]{32}"
 
@@ -40,7 +41,7 @@ def validate_document(document: Any) -> None:
         raise ValueError("Invalid editor metadata")
     if not isinstance(metadata["name"], str) or len(metadata["name"]) > 120:
         raise ValueError("Project name must contain at most 120 characters")
-    if metadata["format"] not in ("zxblocks/v1", "zxblocks/v2") or not isinstance(metadata["initials"], dict):
+    if metadata["format"] not in SUPPORTED_FORMATS or not isinstance(metadata["initials"], dict):
         raise ValueError("Invalid editor format or initial values")
     if not isinstance(document.get("workspace"), dict) or not isinstance(document.get("view", {}), dict):
         raise ValueError("Invalid workspace or viewport")

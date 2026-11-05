@@ -8,7 +8,7 @@ A Scratch-like editor on PC targeting classic ZX Spectrum 48K. The host is uncon
 Blockly workspace (M1)
          |
          v
-zxblocks/v1 or v2 JSON project
+zxblocks/v1, v2 or v3 JSON project
          |
          v
 validate -> typed IR -> Z80 code generator
@@ -52,7 +52,7 @@ No IR version, runtime instruction or ABI change is involved in packaging.
 
 The editor now manages named projects with stable IDs in `projects/<id>/`.
 It infers capabilities from connected blocks: keyboard expressions promote
-authored exports to v2 automatically. Raw IR import and compiler validation
+authored exports to v2, arithmetic/new comparisons to v3 automatically. Raw IR import and compiler validation
 remain strict about the declared version; IR schemas and the runtime ABI do
 not change. Removing unused keyboard blocks removes their runtime routines.
 Its `zxblocks/editor/v2` container separates Blockly drafts/viewport from an
@@ -69,14 +69,18 @@ programs never launch stale output. Raw-IR endpoints remain compatible.
 See [projects, document migration and build storage](PROJECTS.md) for the schema,
 UI workflow, cache inputs, concurrency limits and directory layout.
 
-## Next: arithmetic before scheduling
+## Arithmetic foundation before scheduling
 
-The next M2 stage is versioned u8 arithmetic and comparisons of expressions,
-followed by the remaining arithmetic, bitwise and logical operations. Complete
-these before timers/waits and procedures. The [arithmetic plan](ARITHMETIC_PLAN.md)
-defines the ordered slices, semantic decisions and acceptance checks. It does
-not change the currently supported v1/v2 grammar or runtime ABI. Each operator
-slice must work through the editor, CLI, reference model and native compilation.
+v3 adds nested u8 add/sub and unsigned comparisons of two expressions, while
+preserving legacy v1/v2 assembly. Expressions compile inline with balanced
+stack saves of left operands; no interpreter, helper RAM or new runtime routine
+is introduced. The [v3 specification](BLOCK_IR_V3.md) documents the grammar,
+expression limits, register/stack contract and migration. The editor, CLI,
+reference model and assembled execution use the same documented semantics.
+
+Remaining arithmetic, bitwise and logical operations precede timers/waits and
+procedures; see [the arithmetic plan](ARITHMETIC_PLAN.md). Existing runtime
+builtin contracts and old-format grammars remain unchanged.
 
 ## Execution
 
@@ -99,6 +103,6 @@ IR format is versioned; design a migration strategy before adding breaking chang
 
 ## Still planned
 
-General arithmetic/bitwise expressions, animation tool, object system,
+Multiplication/division/remainder, bitwise/logical expressions, animation tool, object system,
 timer/procedure IR, BASIC loader, T-state profiler, 128K/Next, AY, AI optimizer
 and a complete emulator.

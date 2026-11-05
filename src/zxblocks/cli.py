@@ -30,9 +30,10 @@ def main(argv: list[str] | None = None) -> int:
     editor_cmd = commands.add_parser("editor", help="Serve the local Blockly editor")
     editor_cmd.add_argument("--port", type=int, default=8765)
     editor_cmd.add_argument("--open", action="store_true", help="Open the editor in a browser")
-    upgrade_cmd = commands.add_parser("upgrade", help="Explicitly upgrade project IR to zxblocks/v2")
+    upgrade_cmd = commands.add_parser("upgrade", help="Explicitly upgrade project IR")
     upgrade_cmd.add_argument("project", type=Path)
     upgrade_cmd.add_argument("-o", "--output", type=Path, required=True)
+    upgrade_cmd.add_argument("--to", choices=("zxblocks/v2", "zxblocks/v3"), default="zxblocks/v2")
     simulate_cmd = commands.add_parser("simulate", help="Run deterministic IR logic (not a Spectrum emulator)")
     simulate_cmd.add_argument("project", type=Path)
     simulation = simulate_cmd.add_mutually_exclusive_group()
@@ -59,11 +60,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Launched {args.emulator}: {result.snapshot} (PID {process.pid})")
             return 0
         if args.command == "upgrade":
-            from .migrate import upgrade_to_v2
-            upgraded = upgrade_to_v2(project)
+            from .migrate import upgrade_project
+            upgraded = upgrade_project(project, args.to)
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(json.dumps(upgraded, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-            print(f"Upgraded to zxblocks/v2: {args.output}")
+            print(f"Upgraded to {args.to}: {args.output}")
             return 0
         if args.command == "simulate":
             from .simulator import Simulator

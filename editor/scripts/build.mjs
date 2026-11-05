@@ -18,4 +18,5 @@ await cp('THIRD_PARTY_NOTICES.md', 'dist/THIRD_PARTY_NOTICES.md');
 await cp('node_modules/blockly/LICENSE', 'dist/BLOCKLY_LICENSE');
 await cp('../examples/border_cycle/project.json', 'dist/border_cycle.json');
 await cp('../examples/keyboard_border/project.json', 'dist/keyboard_border.json');
+await cp('../examples/arithmetic_border/project.json', 'dist/arithmetic_border.json');
 console.log('Built editor/dist');

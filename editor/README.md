@@ -1,8 +1,8 @@
 # Blockly editor — M1
 
-The editor supports `zxblocks/v1` and the explicit `zxblocks/v2` keyboard
-extension. It generates JSON, never assembly; the local Python compiler
-generates ASM. Existing v1 runtime output is unchanged.
+The editor supports `zxblocks/v1`, v2 keyboard input and v3 arithmetic/expression
+comparisons. It generates JSON, never assembly; the local Python compiler
+generates ASM. Existing v1/v2 output is unchanged.
 
 ## Run from a repository checkout
 
@@ -26,9 +26,17 @@ or CDN is required. sjasmplus is needed for CLI BIN/TAP builds, not for editing.
 - Import/export uses the normal project JSON, preserving action and declaration order.
 - Supported blocks: start/frame, set/change, if/else with eq/ne/lt/ge, set_border,
   byte literals and variable references. All variables are unsigned bytes.
+- **Математика** adds nested `+`/`−`; the new **Условия → если** accepts two
+  values/expressions with eq/ne/lt/le/gt/ge. Using either selects v3 automatically.
+  Old fixed-variable/constant condition blocks remain loadable and preserve their
+  original IR. Each intermediate wraps to 0..255. Missing operands are saved as
+  drafts and identify their parent arithmetic block when compiled.
+- **Меню → Создать из примера → Арифметика и скорость** demonstrates
+  `counter + speed >= limit` and `7 − color`; SPACE increases the step.
+  See [v3 grammar, limits and stack contract](../docs/BLOCK_IR_V3.md).
 - The key-pressed block is a byte expression (1/0). Connecting it to a program
   automatically enables keyboard support and exports v2; there is no format
-  selector. A plain v1 program still exports v1, and already-v2 documents keep
+  selector. A plain v1 program still exports v1, and previously upgraded documents keep
   their version. Removing all key expressions excludes keyboard runtime.
   Raw v1 JSON containing key expressions is still rejected on import. The 40 physical key names
   match the Python target; they are not composed BASIC symbols.
@@ -112,7 +120,7 @@ QA for the new keyboard example is also still pending. See
 
 The build/run slice adds HTTP tests for current-project snapshots, immutable
 build links, missing tools, failed-build launch prevention, artifact access
-and origin checks. Native sjasmplus tests validate generic v1/v2 BIN/SNA/SLD
+and origin checks. Native sjasmplus tests validate generic v1/v2/v3 BIN/SNA/SLD
 output and native emulator path arguments. Interactive browser coverage is
 still recorded separately; backend tests do not imply a browser click test.
 
@@ -131,3 +139,13 @@ Chrome headless layout checks passed for three window sizes with long variable
 and build lists; the footer stays after the editor and can be reached by page
 scrolling. This covers responsive layout, not the full menu/import/run browser
 acceptance checklist.
+
+The first v3 arithmetic slice passed 74 Python and 32 Blockly/persistence tests
+on 2026-11-05. An isolated Chrome headless test of the built editor exercised
+the arithmetic-template menu, creation/save, project switching, source/workspace/
+history restore after reload, compile, all six artifact downloads and the Run
+button. It built 120 bytes of code and reused the same build when launching
+EmuZWin; no JavaScript errors occurred. The emulator reported responsive in
+48K mode. Manual editing/import, incomplete-draft/error navigation and visual
+SPACE behavior remain acceptance items; the browser host was unavailable and
+the native helper exposed no targetable EmuZWin window.

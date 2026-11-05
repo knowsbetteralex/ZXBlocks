@@ -1,21 +1,23 @@
-# Arithmetic and expressions — next M2 work
+# Arithmetic and expressions — M2 work
 
-Status: planned, not implemented. This is the implementation plan, not an
-extension of the currently accepted v1/v2 JSON grammar.
+Status: slice 1 implemented in [zxblocks/v3](BLOCK_IR_V3.md). The remaining
+arithmetic/bitwise/logical operations below are planned. v1/v2 grammars stay unchanged.
 
 On 2026-11-04 the user prioritized arithmetic before timers, delays and user
 procedures. General expressions are needed for variable speeds, counters,
 coordinates and conditions even before a renderer is available.
 
-## Current baseline
+## Legacy baseline and implemented foundation
 
-Expressions currently contain a byte literal, a variable reference or a v2
-keyboard sample. `change` adds a constant; `if` compares a variable with a
-constant using eq/ne/lt/ge. There are no general arithmetic or bitwise nodes.
+Legacy expressions contain a byte literal, a variable reference or a v2
+keyboard sample. `change` adds a constant; legacy `if` compares a variable with a
+constant using eq/ne/lt/ge in v1/v2. v3 now adds nested add/sub, six unsigned
+expression comparisons, matching simulation and editor blocks. Bitwise nodes,
+multiplication, division and remainder remain planned.
 
 ## Ordered implementation slices
 
-1. **Expression foundation:** document a versioned IR extension and migration;
+1. **Expression foundation (implemented):** document a versioned IR extension and migration;
    add nested `+` and `-`, and comparisons between two expressions using
    `=`, `!=`, `<`, `<=`, `>` and `>=`. Expressions must work in assignments,
    supported builtin arguments and condition operands.
@@ -32,8 +34,8 @@ reference simulation, Blockly blocks, import/export, draft save/restore and
 tests. Finish a working example in each slice instead of adding disconnected
 compiler or editor features for all operators at once.
 
-The first implementation task is slice 1: `+`, `-` and comparisons of
-expressions, all the way from blocks to a runnable Spectrum program.
+The next implementation task is slice 2: specify zero-divisor behavior and
+add multiplication, division and remainder as further complete slices.
 
 ## Number model and decisions
 
@@ -55,8 +57,9 @@ Decide and specify before the relevant implementation:
 - Shift-count range and behavior outside it; right shift is logical for u8.
 - Evaluation order, condition results and short-circuit rules. Logical
   conditions and bit masks must be unambiguous in the IR and block labels.
-- Limits on expression depth and total nodes, plus the register/stack/scratch
-  RAM strategy for nested expressions. Existing action limits remain in force.
+- The add/sub slice specifies depth 16, 4096 shared value nodes and balanced
+  inline stack saves without scratch RAM. Further operators must retain or
+  explicitly revise these documented limits/contracts before implementation.
 
 ## Compatibility and interface
 
@@ -74,16 +77,30 @@ Decide and specify before the relevant implementation:
 
 ## Acceptance checks
 
-- [ ] Versioned grammar, operator semantics, diagnostics and migration documented.
-- [ ] Nested arithmetic and expression comparisons work in the editor, CLI and simulator.
+- [x] v3 add/sub grammar, six comparisons, diagnostics, limits and migration documented.
+- [x] Nested add/sub and expression comparisons work in the editor, CLI and simulator.
 - [ ] Multiplication/division/remainder, masks, shifts and compound conditions work end to end.
-- [ ] Overflow, underflow, zero divisors, shift boundaries, missing operands, malformed nodes and excessive nesting are tested.
-- [ ] Byte-model results match constant folding and assembled Z80 execution; use boundary cases, reproducible samples and exhaustive u8 checks where practical.
-- [ ] Original v1/v2 projects retain their behavior and deterministic output.
-- [ ] Blocks round-trip through IR and saved drafts with automatic capability selection.
-- [ ] A runnable arithmetic example is assembled and checked in a 48K emulator when available; unperformed checks are stated explicitly.
+- [x] Add/sub overflow, underflow, missing operands, malformed nodes and excessive nesting are tested.
+- [ ] Zero-divisor and shift-boundary rules are specified and tested with their operators.
+- [x] Add/sub and six comparisons match independent results in assembled Z80 execution; maximum-depth stack balance is checked.
+- [ ] Remaining operators and any future constant folding match the byte model.
+- [x] Original v1/v2 example ASM fingerprints remain unchanged.
+- [x] Blocks round-trip through IR and saved drafts with automatic capability selection.
+- [x] The arithmetic-border example assembles as a 48K snapshot and matches reference logic in assembled-code tests.
+- [x] An isolated browser check creates/saves the arithmetic template, switches projects, restores it after reload, compiles, downloads and runs the same build.
+- [ ] Interactive arithmetic/keyboard smoke test in a full 48K emulator.
 
-An initial example can combine variable increments and expression comparisons.
-A later example can derive a border pattern from `(counter / divisor) AND 7`,
+Verified on 2026-11-05: 74 Python and 32 real-Blockly/persistence tests passed,
+with no local skips. sjasmplus/SkoolKit execution checked 576 operand pairs,
+all six comparisons, the keyboard example trace and the 34-byte maximum
+additional comparison stack. The actual browser bundle passed an isolated
+Chrome headless workflow, producing a 120-byte BIN and valid 48K SNA and
+reusing that build through the Run button. EmuZWin launched in 48K mode and
+reported responsive; visual keyboard acceptance remains pending because the
+native UI helper did not expose its window.
+
+The implemented `examples/arithmetic_border` combines variable increments,
+expression comparisons and SPACE-controlled speed. A later example can derive
+a border pattern from `(counter / divisor) AND 7`,
 with keys changing operands. This demonstrates useful arithmetic before adding
 delays. Sprite transparency masks remain part of graphics M3.

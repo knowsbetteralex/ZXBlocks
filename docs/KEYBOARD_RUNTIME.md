@@ -2,7 +2,7 @@
 
 This documents generated private symbols, not an API for manual ASM blocks.
 v1 output and its runtime entry conventions remain unchanged. The new poll
-routine is linked only if at least one `zxblocks/v2` key expression is used.
+routine is linked only if at least one `zxblocks/v2` or `zxblocks/v3` key expression is used.
 
 ## ZXB_RT_KEY_POLL
 

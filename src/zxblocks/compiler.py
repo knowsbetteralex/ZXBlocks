@@ -10,10 +10,13 @@ import re
 from typing import Any
 
 from .keyboard import KEY_MATRIX, KEY_ROWS
+from .formats import KEYBOARD_FORMATS, SUPPORTED_FORMATS
 
 IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 MAX_DEPTH = 16
 MAX_ACTIONS = 4096
+MAX_EXPRESSION_DEPTH = 16
+MAX_EXPRESSION_NODES = 4096
 
 
 class CompileError(ValueError):
@@ -35,8 +38,8 @@ class _Compiler:
         if not isinstance(project, dict):
             raise CompileError("Project must be a JSON object")
         self.format = project.get("format")
-        if self.format not in ("zxblocks/v1", "zxblocks/v2"):
-            raise CompileError("Expected format: zxblocks/v1 or zxblocks/v2")
+        if self.format not in SUPPORTED_FORMATS:
+            raise CompileError("Expected format: " + ", ".join(SUPPORTED_FORMATS))
         variables = project.get("variables", [])
         if not isinstance(variables, list):
             raise CompileError("variables must be an array")
@@ -68,6 +71,7 @@ class _Compiler:
         self.lines: list[str] = []
         self.label_index = 0
         self.action_count = 0
+        self.expression_count = 0
         self.uses_border = False
         self.key_rows: set[int] = set()
 
@@ -86,12 +90,25 @@ class _Compiler:
             raise CompileError(f"Unknown variable: {name!r}")
         return f"ZXB_VAR_{name.upper()}"
 
-    def load_a(self, expression: Any) -> None:
+    def load_a(self, expression: Any, path: str | None = None, depth: int = 0) -> None:
+        self.expression_count += 1
+        if depth > MAX_EXPRESSION_DEPTH:
+            raise CompileError("Maximum expression depth is 16", path)
+        if self.expression_count > MAX_EXPRESSION_NODES:
+            raise CompileError("Too many expression nodes (maximum 4096)", path)
+        try:
+            self._expression(expression, path, depth)
+        except CompileError as exc:
+            if exc.path is None:
+                exc.path = path
+            raise
+
+    def _expression(self, expression: Any, path: str | None, depth: int) -> None:
         if isinstance(expression, dict) and set(expression) == {"var"}:
             self.emit(f"LD A,({self.var_label(expression['var'])})")
         elif isinstance(expression, dict) and set(expression) == {"key"}:
-            if self.format != "zxblocks/v2":
-                raise CompileError("Key expressions require zxblocks/v2; upgrade explicitly")
+            if self.format not in KEYBOARD_FORMATS:
+                raise CompileError("Key expressions require zxblocks/v2 or v3; upgrade explicitly")
             key = expression["key"]
             if not isinstance(key, str) or key not in KEY_MATRIX:
                 raise CompileError(f"Unknown physical key: {key!r}")
@@ -102,8 +119,62 @@ class _Compiler:
             self.emit(f"AND {1 << bit}")
             for _ in range(bit):
                 self.emit("RRCA")
+        elif isinstance(expression, dict) and "op" in expression:
+            if self.format != "zxblocks/v3":
+                raise CompileError("Arithmetic expressions require zxblocks/v3; upgrade explicitly")
+            if set(expression) != {"op", "left", "right"}:
+                raise CompileError("Arithmetic expression must contain only op, left and right")
+            operator = expression["op"]
+            if not isinstance(operator, str) or operator not in ("add", "sub"):
+                raise CompileError("Arithmetic operator must be add or sub")
+            self.load_a(expression["left"], f"{path}.left", depth + 1)
+            self.emit("PUSH AF")
+            self.load_a(expression["right"], f"{path}.right", depth + 1)
+            self.emit("LD C,A")
+            self.emit("POP AF")
+            self.emit("ADD A,C" if operator == "add" else "SUB C")
         else:
             self.emit(f"LD A,{_byte(expression, 'expression')}")
+
+    def compare_condition(self, condition: dict, path: str, skip: str) -> None:
+        if "left" not in condition and "right" not in condition:
+            # Preserve the original legacy instructions and four-operator ABI.
+            if self.format == "zxblocks/v3" and set(condition) != {"var", "op", "value"}:
+                raise CompileError("Legacy condition must contain only var, op and value", path)
+            variable = self.var_label(condition.get("var"))
+            number = _byte(condition.get("value"), "if.condition.value")
+            inverse = {"eq": "NZ", "ne": "Z", "lt": "NC", "ge": "C"}
+            operator = condition.get("op")
+            if not isinstance(operator, str) or operator not in inverse:
+                raise CompileError("Comparison must be eq, ne, lt or ge")
+            self.emit(f"LD A,({variable})")
+            self.emit(f"CP {number}")
+            self.emit(f"JP {inverse[operator]},{skip}")
+            return
+        if self.format != "zxblocks/v3":
+            raise CompileError("Expression comparisons require zxblocks/v3; upgrade explicitly", path)
+        if set(condition) != {"left", "op", "right"}:
+            raise CompileError("Expression condition must contain only left, op and right", path)
+        operator = condition["op"]
+        if not isinstance(operator, str) or operator not in ("eq", "ne", "lt", "le", "gt", "ge"):
+            raise CompileError("Comparison must be eq, ne, lt, le, gt or ge", path + ".op")
+        self.load_a(condition["left"], path + ".left")
+        self.emit("PUSH AF")
+        self.load_a(condition["right"], path + ".right")
+        self.emit("LD C,A")
+        self.emit("POP AF")
+        self.emit("CP C")
+        if operator == "gt":
+            self.emit(f"JP C,{skip}")
+            self.emit(f"JP Z,{skip}")
+        elif operator == "le":
+            passed = self.fresh_label("CMP_TRUE")
+            self.emit(f"JP C,{passed}")
+            self.emit(f"JP NZ,{skip}")
+            self.label(passed)
+        else:
+            inverse = {"eq": "NZ", "ne": "Z", "lt": "NC", "ge": "C"}
+            self.emit(f"JP {inverse[operator]},{skip}")
 
     def actions(self, statements: list[Any], depth: int = 0, path: str = "") -> None:
         """Attach the innermost IR action path to diagnostics for editors."""
@@ -127,7 +198,7 @@ class _Compiler:
         op = statement.get("op")
         if op == "set":
             variable = self.var_label(statement.get("var"))
-            self.load_a(statement.get("value"))
+            self.load_a(statement.get("value"), path + ".value" if self.format == "zxblocks/v3" else None)
             self.emit(f"LD ({variable}),A")
         elif op == "change":
             variable = self.var_label(statement.get("var"))
@@ -147,20 +218,12 @@ class _Compiler:
             cond = statement.get("condition")
             if not isinstance(cond, dict):
                 raise CompileError("if.condition must be an object")
-            variable = self.var_label(cond.get("var"))
-            number = _byte(cond.get("value"), "if.condition.value")
-            inverse = {"eq": "NZ", "ne": "Z", "lt": "NC", "ge": "C"}
-            cmp_op = cond.get("op")
-            if not isinstance(cmp_op, str) or cmp_op not in inverse:
-                raise CompileError("Comparison must be eq, ne, lt or ge")
             then = statement.get("then", [])
             otherwise = statement.get("else", [])
             if not isinstance(then, list) or not isinstance(otherwise, list):
                 raise CompileError("if.then and if.else must be arrays")
             skip = self.fresh_label("ELSE")
-            self.emit(f"LD A,({variable})")
-            self.emit(f"CP {number}")
-            self.emit(f"JP {inverse[cmp_op]},{skip}")
+            self.compare_condition(cond, path + ".condition", skip)
             self.actions(then, depth + 1, f"{path}.then")
             if otherwise:
                 end = self.fresh_label("ENDIF")
@@ -174,7 +237,7 @@ class _Compiler:
             if statement.get("name") != "set_border":
                 raise CompileError(f"Unknown procedure: {statement.get('name')!r}")
             self.uses_border = True
-            self.load_a(statement.get("arg"))
+            self.load_a(statement.get("arg"), path + ".arg" if self.format == "zxblocks/v3" else None)
             self.emit("CALL ZXB_RT_SET_BORDER")
         else:
             raise CompileError(f"Unsupported action: {op!r}")
@@ -244,5 +307,5 @@ class _Compiler:
 
 
 def compile_project(project: Any) -> str:
-    """Compile a parsed zxblocks/v1 or zxblocks/v2 project to Z80 assembly."""
+    """Compile a parsed supported versioned project to Z80 assembly."""
     return _Compiler(project).compile()

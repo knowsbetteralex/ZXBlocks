@@ -304,7 +304,7 @@ $('project-file').addEventListener('change', async () => {
 });
 $('new').addEventListener('click', () => askName(documentFromFile({format: 'zxblocks/v1', name: 'Новый проект'})));
 $('duplicate').addEventListener('click', () => askName(capture(), true));
-for (const [button, path] of [['example', 'border_cycle.json'], ['keyboard-example', 'keyboard_border.json']]) {
+for (const [button, path] of [['example', 'border_cycle.json'], ['keyboard-example', 'keyboard_border.json'], ['arithmetic-example', 'arithmetic_border.json']]) {
   $(button).addEventListener('click', async () => {
     try { askName(documentFromFile(await (await fetch(path)).json())); }
     catch (error) { showError(error); }

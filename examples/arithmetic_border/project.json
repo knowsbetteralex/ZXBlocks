@@ -1,0 +1,31 @@
+{
+  "format": "zxblocks/v3",
+  "name": "Арифметика и скорость",
+  "variables": [
+    {"name": "counter", "initial": 0},
+    {"name": "speed", "initial": 1},
+    {"name": "limit", "initial": 25},
+    {"name": "color", "initial": 0}
+  ],
+  "events": {
+    "start": [],
+    "frame": [
+      {"op": "set", "var": "speed", "value": {"op": "add", "left": 1, "right": {"key": "SPACE"}}},
+      {
+        "op": "if",
+        "condition": {
+          "left": {"op": "add", "left": {"var": "counter"}, "right": {"var": "speed"}},
+          "op": "ge", "right": {"var": "limit"}
+        },
+        "then": [
+          {"op": "set", "var": "counter", "value": 0},
+          {"op": "set", "var": "color", "value": {"op": "add", "left": {"var": "color"}, "right": 1}}
+        ],
+        "else": [
+          {"op": "set", "var": "counter", "value": {"op": "add", "left": {"var": "counter"}, "right": {"var": "speed"}}}
+        ]
+      },
+      {"op": "call", "name": "set_border", "arg": {"op": "sub", "left": 7, "right": {"var": "color"}}}
+    ]
+  }
+}

@@ -46,7 +46,7 @@ Current TAP is CODE-only without autostart: CLEAR 32767, then LOAD "" CODE, then
 
 ## Evolution
 
-The M1 editor continues to export this same format. Blockly IDs, positions and
+The editor preserves this format for basic programs. Blockly IDs, positions and
 collapsed state are stored separately in `zxblocks/editor/v1` workspace files,
 not in project IR. Missing optional arrays/defaults may be normalized on export;
 reference spelling follows the declared variable. Unknown extension fields
@@ -58,7 +58,6 @@ schema change or runtime ABI change.
 
 Versioned evolution can add word/signed types, non-blocking timers, procedures, object properties, sprite asset references, keyboard conditions, rich expressions and source maps. Create migrations and new tests; do not break existing projects silently.
 
-The next planned extension is u8 arithmetic and expression comparisons,
-before timers/waits; see [the implementation plan](ARITHMETIC_PLAN.md).
-Arithmetic nodes are not currently part of v1 or v2. Their versioned grammar,
-migration and boundary semantics must be specified before implementation.
+Nested add/sub and expression comparisons are available in the separate
+[v3 extension](BLOCK_IR_V3.md), not in v1 or v2. Further arithmetic still
+precedes timers/waits; see [the implementation plan](ARITHMETIC_PLAN.md).

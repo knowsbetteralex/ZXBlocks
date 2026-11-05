@@ -52,7 +52,7 @@ test('editor positions survive save/load without entering semantic IR', () => wi
 
 test('unknown or malformed IR is rejected without destroying the open workspace', () => withWorkspace(workspace => {
   const metadata = importProject(workspace, example);
-  for (const invalid of [null, {format: 'zxblocks/v3'}, {...example, assets: []},
+  for (const invalid of [null, {format: 'zxblocks/v99'}, {...example, assets: []},
     {...example, variables: null}, {...example, events: null},
     {...example, variables: [{name: 'x', initial: true}]}, {...example, variables: [{name: 'x', initial: null}]}]) {
     assert.throws(() => importProject(workspace, invalid));

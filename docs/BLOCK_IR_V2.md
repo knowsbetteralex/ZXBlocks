@@ -7,6 +7,10 @@ is accepted (`set.value` or `set_border.arg`). Comparisons still operate on a
 declared variable and a byte literal. No wait, timer, procedure or object nodes
 are introduced in this slice.
 
+[zxblocks/v3](BLOCK_IR_V3.md) includes the same keyboard behavior and adds
+nested add/sub and comparisons of two expressions. These new nodes remain
+invalid in v2; upgrading a legacy v2 project to v3 preserves its ASM.
+
 ## Explicit migration and compatibility
 
 Existing `zxblocks/v1` projects keep their original behavior and assembly.

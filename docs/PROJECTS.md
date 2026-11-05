@@ -9,7 +9,7 @@ a short pause and before switching projects. **Запустить** / F5 saves a
 builds the current program, then opens its SNA in EmuZWin.
 
 The **Меню** groups less frequent actions: new project, duplicate, create from
-either example, export a complete project, export compiler JSON, build without
+an example, export a complete project, export compiler JSON, build without
 launching, inspect ASM and fit all blocks. Examples create editable copies;
 they do not replace another project or modify the example files.
 
@@ -26,14 +26,16 @@ status and whether the program matches a build are shown separately.
 
 Program capabilities are inferred from connected blocks. A keyboard expression
 automatically selects compiler IR v2 during export/save; no format selector or
-confirmation is needed. Detached draft blocks do not enable a capability.
-Previously v2 documents keep their version; removing the last keyboard use
+confirmation is needed. Arithmetic and expression-comparison blocks select v3,
+which also supports keyboard samples. Detached draft blocks do not enable a capability.
+Previously v2/v3 documents keep their version; removing the last keyboard use
 excludes keyboard polling/runtime. Raw imported IR is validated against its
 declared version before the editor touches the open project.
 
 ## Editor document v2 and migration
 
-Compiler formats `zxblocks/v1` and `zxblocks/v2` and the Z80 ABI are unchanged.
+Compiler formats v1/v2 and existing runtime builtin contracts are unchanged;
+v3 adds the documented expression extension and inline stack usage.
 `zxblocks/editor/v2` is a new **editor container**, with:
 
 - `metadata`: name, current IR format, initial values keyed by variable IDs;

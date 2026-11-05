@@ -59,3 +59,14 @@ to select required capabilities automatically. Division-by-zero behavior,
 shift rules and condition evaluation details remain specification work;
 see [the arithmetic implementation plan](ARITHMETIC_PLAN.md). This decision
 changes work priority, not the current supported grammar or runtime ABI.
+
+## ADR-011 — v3 byte-expression foundation (2026-11-05)
+
+Add nested u8 add/sub and six unsigned expression comparisons in `zxblocks/v3`.
+Evaluate left before right and wrap each value node modulo 256. Preserve legacy
+condition shapes and byte-identical v1/v2 assembly; provide explicit CLI upgrade
+and automatic capability selection for authored blocks. Keep editor-container
+versions independent. Inline balanced PUSH/POP code saves operands without
+scratch RAM or runtime helpers; bound expression depth/nodes and document
+register/stack usage in [the v3 specification](BLOCK_IR_V3.md). New arithmetic
+operators and compound conditions remain separate complete slices.

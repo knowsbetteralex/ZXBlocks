@@ -139,6 +139,26 @@ class ManagedEditorTests(unittest.TestCase):
                 self.assertEqual(self.request(path, {}, origin="https://example.org")[0], 403)
         launch.assert_not_called()
 
+    def test_v3_document_and_draft_are_saved_and_build_the_exact_expression_ir(self):
+        project = json.loads((ROOT / "examples/arithmetic_border/project.json").read_text(encoding="utf-8"))
+        state = document(project["name"])
+        state["metadata"]["format"] = "zxblocks/v3"
+        state["project"] = project
+        status, record = self.request("/api/projects", {"document": state})
+        self.assertEqual(status, 200)
+        prefix = f"/api/projects/{record['id']}"
+        with patch("zxblocks.build_store.require_tool", return_value=sys.executable), \
+             patch("zxblocks.build_store.build_project", side_effect=fake_build):
+            status, built = self.request(prefix + "/build", {"project": project})
+        self.assertEqual(status, 200)
+        with urlopen(self.url + built["build"]["artifacts"]["json"], timeout=5) as response:
+            self.assertEqual(json.load(response), project)
+        state["project"] = None
+        status, saved = self.request(prefix + "/save", {"revision": record["revision"], "document": state})
+        self.assertEqual(status, 200)
+        self.assertEqual(self.request(prefix)[1]["document"]["metadata"]["format"], "zxblocks/v3")
+        self.assertIsNone(saved["document"]["project"])
+
     def test_builds_belong_to_selected_project_and_persist_with_classified_files(self):
         first = self.create()
         second = self.create("Project B")

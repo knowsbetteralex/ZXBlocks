@@ -35,6 +35,7 @@ SLD source mappings were verified. No timing or contention measurements yet.
 - [x] Per-project numbered/classified builds, persistent history and verified build reuse.
 - [x] Infer capabilities from connected blocks, automatically select required IR version and remove the manual selector.
 - [x] Keep the page footer after the editor in responsive document flow.
+- [x] Automated browser check of example creation/save, project switching, valid-workspace reload, compile, artifact downloads and Run/build reuse.
 - [ ] Browser acceptance of project switching, draft restore, menu, downloads and run.
 - [ ] Interactive browser smoke test: import/edit/export, workspace restore, compile and error navigation.
 
@@ -91,15 +92,17 @@ Priority agreed on 2026-11-04: complete arithmetic and expression operations
 before timers/delays. The detailed sequence, open semantic decisions and
 acceptance checks are in [the arithmetic plan](ARITHMETIC_PLAN.md).
 
-### M2.1 — arithmetic and expressions (next)
+### M2.1 — arithmetic and expressions (in progress)
 
-- [ ] Specify/version the expression IR extension and migrations, preserving v1/v2.
-- [ ] Nested addition/subtraction and comparisons between expressions (=, !=, <, <=, >, >=).
+- [x] Specify/version the expression IR extension and migrations, preserving v1/v2.
+- [x] Nested addition/subtraction and comparisons between expressions (=, !=, <, <=, >, >=).
 - [ ] Multiplication, unsigned integer division and remainder, with specified zero-divisor behavior.
 - [ ] Bitwise AND/OR/XOR/NOT, logical shifts and documented shift-count rules.
 - [ ] Logical condition composition, distinct from bitwise byte operations.
-- [ ] Blockly blocks, automatic capability selection, IR round trips and incomplete-expression draft restore.
-- [ ] Reference-model, compatibility and assembled-code tests; runnable arithmetic example.
+- [x] Add/sub/comparison blocks, automatic capability selection, IR round trips and incomplete-expression draft restore.
+- [x] Add/sub reference-model, compatibility and assembled-code tests; runnable arithmetic example.
+- [ ] Extend the same coverage to the remaining operators.
+- [ ] Interactive arithmetic/keyboard smoke test in a full 48K emulator.
 
 Acceptance: the operations work from blocks through compiled execution, with
 matching u8 semantics and documented error/boundary behavior. Complete this
@@ -109,7 +112,7 @@ stage before starting timers or waits; implement one complete slice at a time.
 
 - [x] Versioned key input expressions, per-frame row samples and explicit v1→v2 migration.
 - [x] Keyboard-border example, Blockly round trips and assembled Z80 port tests.
-- [x] Python reference simulation for v1/v2 actions and keyboard input, independent of video.
+- [x] Python reference simulation for v1/v2/v3 actions, expressions and keyboard input, independent of video.
 - [ ] Interactive 48K emulator keyboard test and browser keyboard-block smoke test.
 
 ### M2.3 — timers, delays and procedures (after arithmetic)
@@ -122,7 +125,8 @@ M2 acceptance: deterministic expression/input/timer behavior can be tested
 against compiled execution; waiting scripts do not stop the other updates.
 
 Keyboard slice implemented in `feat/keyboard-v2`; see `docs/BLOCK_IR_V2.md`
-and `docs/KEYBOARD_RUNTIME.md`. General arithmetic and bitwise nodes,
+and `docs/KEYBOARD_RUNTIME.md`. The first expression slice is in `feat/arithmetic-expressions`;
+see `docs/BLOCK_IR_V3.md`. Multiplication/division/remainder, bitwise/logical nodes,
 timers/procedures/object semantics are not yet implemented. Interactive Chrome
 automation was blocked again on 2026-11-04
 because Computer Use could not reliably determine its current URL. No new
@@ -137,6 +141,25 @@ The existing v1 ASM/BIN/TAP still match the verified M0 artifacts byte for byte.
 The dedicated assembled-keyboard CI job is added; a remote CI run is not claimed.
 Also fixed Windows HTTP port sharing: a second editor cannot bind the same
 active port and accidentally serve an older compiler; covered by a regression test.
+
+Expression slice verified on 2026-11-05: 74 Python and 32 real-Blockly/persistence
+tests passed with no local skips; the frontend bundle built. Native sjasmplus/
+SkoolKit tests checked add/sub and all six unsigned comparisons against
+independent expected values for 576 operand pairs, plus per-frame keyboard
+behavior and the maximum-depth 34-byte additional stack bound. Original
+v1/v2 ASM fingerprints remain unchanged. The required border-cycle CLI compile
+also passed. No T-state/ULA timing claim is made.
+
+An isolated Chrome headless test of the actual bundle created the arithmetic
+example through the menu, saved it, switched away/back, compiled it, downloaded
+all six artifacts and restored source/workspace/history after a page reload.
+The Run button launched EmuZWin using the existing single build: 120-byte BIN,
+145-byte TAP and valid 49179-byte 48K SNA. No JavaScript errors were reported.
+User projects were outside the test store. EmuZWin reported responsive in 48K
+mode. This closes the automated browser route; manual/incomplete-draft/error
+navigation acceptance and visual emulator keyboard behavior remain unchecked.
+The browser access host was unavailable, and the native helper exposed no
+targetable EmuZWin window, including after a launch attempt.
 
 ## M3 — graphics/animations
 
@@ -160,8 +183,8 @@ active port and accidentally serve an older compiler; covered by a regression te
 
 ## Next implementation tasks
 
-1. Implement nested `+`/`-` and comparisons of expressions as a complete versioned IR/compiler/simulator/editor slice.
-2. Complete multiplication, division/remainder, bitwise operations and logical conditions, including their boundary rules and arithmetic examples.
+1. Specify zero-divisor behavior and implement multiplication, division/remainder with arithmetic examples and native-code checks.
+2. Add bitwise operations and logical conditions, including shift-count and evaluation rules.
 3. Add periodic events, then non-blocking waits and user procedures after the arithmetic acceptance checks pass.
 4. Implement runtime ABI documentation and the first moving sprite.
 

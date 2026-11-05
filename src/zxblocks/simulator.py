@@ -38,6 +38,10 @@ class Simulator:
             return expression
         if "key" in expression:
             return int(expression["key"] in self.keys)
+        if "op" in expression:
+            left = self._value(expression["left"])
+            right = self._value(expression["right"])
+            return (left + right if expression["op"] == "add" else left - right) & 255
         return self.variables[expression["var"].upper()]
 
     def _actions(self, actions: list[dict]) -> None:
@@ -51,10 +55,16 @@ class Simulator:
             elif op == "call":
                 self.border = self._value(action["arg"]) & 7
             elif op == "if":
-                left = self.variables[action["condition"]["var"].upper()]
-                right = action["condition"]["value"]
+                condition = action["condition"]
+                if "left" in condition:
+                    left = self._value(condition["left"])
+                    right = self._value(condition["right"])
+                else:
+                    left = self.variables[condition["var"].upper()]
+                    right = condition["value"]
                 comparisons = {"eq": left == right, "ne": left != right,
-                               "lt": left < right, "ge": left >= right}
+                               "lt": left < right, "le": left <= right,
+                               "gt": left > right, "ge": left >= right}
                 branch = "then" if comparisons[action["condition"]["op"]] else "else"
                 self._actions(action.get(branch, []))
 
